@@ -3,59 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Media | Янгиликлар</title>
+    <title>БУМ | Янгиликлар</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; color: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .post-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 25px; margin-bottom: 30px; }
-        .post-card img { width: 100% !important; height: auto !important; border-radius: 15px; margin: 15px 0; }
-        .post-content { line-height: 1.8; color: #cbd5e1; font-size: 1.1rem; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .news-wrapper { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        .post-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; margin-bottom: 40px; }
+        .post-content img { width: 100%; height: auto; border-radius: 12px; margin: 20px 0; }
+        .post-content { line-height: 1.8; font-size: 1.1rem; color: #cbd5e1; }
     </style>
 </head>
 <body>
-    <div class="max-w-4xl mx-auto p-6" id="news-feed">
-        <h1 class="text-4xl font-bold mb-10 text-sky-400">Сўнгги янгиликлар</h1>
-        <div id="status-message" class="text-center py-20 text-xl">Маълумотлар базаси текширилмоқда...</div>
+
+    <div class="news-wrapper">
+        <h1 class="text-4xl font-black text-sky-400 mb-10 text-center">Сўнгги янгиликлар</h1>
+        
+        <div id="news-feed">
+            <div id="loading-status" class="text-center py-20 text-gray-400">
+                Маълумотлар базаси билан алоқа ўрнатилмоқда...
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // ДИҚҚАТ: databaseURL нинг охирида / белгиси бўлмасин
+        // КОНСОЛДАГИ ХАТОЛИКНИ ТУЗАТУВЧИ КОНФИГУРАЦИЯ
         const firebaseConfig = {
-            databaseURL: "https://bumuzbekistan-default-rtdb.firebaseio.com"
+            // Скриншотдаги (image_fcd504.png) тўғри манзил:
+            databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const newsFeed = document.getElementById('news-feed');
-        const statusMsg = document.getElementById('status-message');
+        const loadingStatus = document.getElementById('loading-status');
 
         const postsRef = ref(db, 'posts');
+        
         onValue(postsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                statusMsg.style.display = 'none';
-                // Эски мақолаларни тозалаб, янгисини чиқариш
+                loadingStatus.style.display = 'none'; // Юкланиш матнини олиб ташлаш
+                newsFeed.innerHTML = ''; // Контейнерни тозалаш
+                
                 const keys = Object.keys(data).reverse();
                 keys.forEach(key => {
                     const post = data[key];
-                    const articleHtml = `
+                    newsFeed.innerHTML += `
                         <div class="post-card">
-                            <h2 class="text-2xl font-bold mb-3 text-white">${post.title}</h2>
-                            <div class="text-sm text-gray-500 mb-4">📅 ${post.date || '03.05.2026'}</div>
-                            <div class="post-content">${post.body}</div>
+                            <div class="text-xs text-sky-400 font-bold mb-2 uppercase tracking-widest">
+                                📅 ${post.date || '03.05.2026'}
+                            </div>
+                            <h2 class="text-3xl font-extrabold text-white mb-4 leading-tight">${post.title}</h2>
+                            <div class="post-content">
+                                ${post.body}
+                            </div>
                         </div>
                     `;
-                    newsFeed.innerHTML += articleHtml;
                 });
             } else {
-                statusMsg.innerText = "Ҳозирча ҳеч қандай мақола топилмади.";
+                loadingStatus.innerText = "Ҳозирча мақолалар мавжуд эмас.";
             }
         }, (error) => {
-            statusMsg.innerText = "Хатолик: База билан алоқа йўқ.";
-            console.error(error);
+            loadingStatus.innerText = "Хатолик: Маълумот олиш имконсиз.";
+            console.error("Firebase хатолиги:", error);
         });
     </script>
 </body>

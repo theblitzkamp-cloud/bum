@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUM Uzbekistan | Intelligence System v3</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script src="https://download.jitsi.org/jitsi-meet-external-api.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Rich Text Editor учун кутубхона -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <style>
+        :root { --spy-blue: #0ea5e9; }
+        body { background-color: #020617; color: #f1f5f9; font-family: 'Courier New', monospace; }
+        .hidden { display: none !important; }
+        .sidebar-link { padding: 12px; display: block; border-bottom: 1px solid #1e293b; cursor: pointer; font-size: 11px; text-transform: uppercase; }
+        .sidebar-link:hover { background: #0f172a; color: var(--spy-blue); }
+        #video-frame { width: 100%; height: 500px; background: #000; border: 1px solid #334155; }
+        /* Editor учун стиллар */
+        .ql-toolbar { background: #f1f5f9 !important; border-radius: 4px 4px 0 0; }
+        .ql-container { background: #0f172a; color: white; height: 300px; border-radius: 0 0 4px 4px; }
+    </style>
+</head>
+<body>
+
+<!-- АСОСИЙ САҲИФА -->
+<div id="public-page" class="max-w-6xl mx-auto p-4">
+    <header class="flex justify-between items-center py-6 border-b border-slate-800">
+        <h1 class="text-2xl font-bold tracking-widest text-sky-500">BUM <span class="text-white">SYSTEM</span></h1>
+        <button onclick="document.getElementById('login-modal').classList.remove('hidden')" class="border border-sky-500 px-6 py-2 text-sky-500 hover:bg-sky-500 hover:text-white">KIRISH</button>
+    </header>
+    <div id="posts-render" class="mt-10 grid gap-8"></div>
+</div>
+
+<!-- ЛОГИН МОДАЛ -->
+<div id="login-modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-50">
+    <div class="w-full max-w-sm p-8 bg-slate-900 border border-sky-500/30">
+        <h2 class="text-center font-bold text-sky-500 mb-6 uppercase">Identifikatsiya</h2>
+        <input type="text" id="l-id" placeholder="Login / Tel" class="w-full bg-black border border-slate-700 p-3 mb-4 rounded text-white outline-none">
+        <input type="password" id="l-pass" placeholder="Parol" class="w-full bg-black border border-slate-700 p-3 mb-6 rounded text-white outline-none">
+        <button onclick="login()" class="w-full bg-sky-600 py-3 font-bold uppercase hover:bg-sky-500">Tasdiqlash</button>
+        <button onclick="document.getElementById('login-modal').classList.add('hidden')" class="w-full mt-4 text-[10px] text-slate-500 underline">[ BEKOR QILISH ]</button>
+    </div>
+</div>
+
+<!-- ШАХСИЙ КАБИНЕТ -->
+<div id="cabinet" class="hidden fixed inset-0 bg-[#020617] flex overflow-hidden">
+    <aside class="w-64 border-r border-slate-800 bg-slate-950 flex flex-col">
+        <div class="p-6 border-b border-slate-800 text-center">
+            <div id="agent-name" class="text-sm font-bold text-sky-400 uppercase">...</div>
+            <div id="agent-role" class="text-[9px] text-slate-500 tracking-widest mt-1 uppercase">...</div>
+        </div>
+        <nav class="flex-1">
+            <div class="sidebar-link" onclick="loadCab('posts')">📝 Maqola/Yangilik</div>
+            <div class="sidebar-link" onclick="loadCab('v-chat')">📡 Videoaloqa</div>
+            <div class="sidebar-link" onclick="loadCab('reports')">📂 Hisobotlar (File)</div>
+            <div class="sidebar-link hidden" id="admin-menu" onclick="loadCab('admin')">⚙️ Agentlar Nazorati</div>
+            <div class="sidebar-link text-rose-500 mt-10" onclick="location.reload()">🔴 Chiqish</div>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div id="cab-content"></div>
+    </main>
+</div>
+
+<script>
+    // FIREBASE КОНФИГУРАЦИЯСИ
+    const firebaseConfig = {
+        apiKey: "AIzaSyBnDKaFZClF1SS9al1pEyG5iUWCgnRcvBI",
+        authDomain: "bumuzbekistan.firebaseapp.com",
+        databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "bumuzbekistan",
+        storageBucket: "bumuzbekistan.firebasestorage.app",
+        messagingSenderId: "197153596410",
+        appId: "1:197153596410:web:db18dca78e911a213e3a43"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storage = firebase.storage();
+
+    let user = null;
+    let quill = null;
+
+    function login() {
+        const id = document.getElementById('l-id').value.trim();
+        const pass = document.getElementById('l-pass').value;
+
+        if(id === 'boss' && pass === '1965') {
+            enter('BOSS', 'Nosirjon Zokirov', '900000000');
+        } else if(id === 'admin' && pass === '123') {
+            enter('ADMIN', 'Tizim Nazoratchisi', '991112233');
+        } else {
+            db.ref('agents/' + id).once('value', s => {
+                const a = s.val();
+                if(a && a.password === pass) enter('USER', a.name, a.id);
+                else alert("Xato: Login yoki parol noto'g'ri!");
+            });
+        }
+    }
+
+    function enter(role, name, phone) {
+        user = { role, name, phone };
+        document.getElementById('public-page').classList.add('hidden');
+        document.getElementById('login-modal').classList.add('hidden');
+        document.getElementById('cabinet').classList.remove('hidden');
+        document.getElementById('agent-name').innerText = name;
+        document.getElementById('agent-role').innerText = role;
+        if(role === 'ADMIN' || role === 'BOSS') document.getElementById('admin-menu').classList.remove('hidden');
+        loadCab('posts');
+    }
+
+    function loadCab(mod) {
+        const area = document.getElementById('cab-content');
+        area.innerHTML = "";
+
+        if(mod === 'posts') {
+            area.innerHTML = `<h2 class="text-sky-500 font-bold mb-6">// MAQOLA VA YANGILIK YARATISH</h2>
+                <div class="max-w-3xl space-y-4 text-black">
+                    <input type="text" id="p-title" placeholder="Maqola sarlavhasi..." class="w-full bg-slate-900 text-white border border-slate-700 p-3 rounded">
+                    <div id="editor-container"></div>
+                    <button onclick="publish()" class="bg-sky-600 text-white px-8 py-3 font-bold uppercase hover:bg-sky-500 transition">Saytga e'lon qilish</button>
+                </div>`;
+            
+            // QUILL EDITORНИ ИШГА ТУШИРИШ
+            quill = new Quill('#editor-container', {
+                theme: 'snow',
+                modules: { toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['image', 'link', 'code-block'] // РАСМ ВА КОД УЧУН ТУГМАЛАР
+                ]}
+            });
+        }
+
+        if(mod === 'v-chat') {
+            const roomName = "BUM_Uzbekistan_Meeting";
+            area.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-rose-500 font-bold">// MAXFIY VIDEOALOQA</h2>
+                    <button onclick="copyInvite()" class="bg-slate-800 text-[10px] border border-sky-500 px-4 py-2 hover:bg-sky-700">TAKLIYFNOMA NUSXALASH</button>
+                </div>
+                <div id="video-frame"></div>`;
+            
+            setTimeout(() => {
+                const options = { 
+                    roomName: roomName, 
+                    width: "100%", 
+                    height: 500, 
+                    parentNode: document.querySelector('#video-frame'), 
+                    userInfo: { displayName: user.name } 
+                };
+                new JitsiMeetExternalAPI("meet.jit.si", options);
+            }, 100);
+        }
+
+        if(mod === 'reports') {
+            area.innerHTML = `<h2 class="text-emerald-500 font-bold mb-6">// HISOBOTLAR</h2>`;
+            if(user.role === 'BOSS') {
+                area.innerHTML += `<div id="rep-list" class="space-y-4">Yuklanmoqda...</div>`;
+                renderReports();
+            } else {
+                area.innerHTML += `
+                <div class="bg-slate-900 p-6 border border-slate-800 max-w-lg">
+                    <input type="file" id="rep-file" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:bg-sky-600 file:text-white file:border-0 hover:file:bg-sky-500">
+                    <button onclick="uploadReport()" class="mt-6 bg-emerald-600 w-full py-3 font-bold uppercase text-xs transition">Hisobotni yuborish</button>
+                </div>`;
+            }
+        }
+
+        if(mod === 'admin') {
+            area.innerHTML = `<h2 class="text-sky-500 font-bold mb-6">// AGENTLAR NAZORATI</h2>
+                <div class="bg-slate-900 p-4 border border-slate-800 mb-6 flex gap-2">
+                    <input type="text" id="a-name" placeholder="Ism" class="bg-black border border-slate-700 p-2 w-full text-white">
+                    <input type="text" id="a-tel" placeholder="Telefon" class="bg-black border border-slate-700 p-2 w-full text-white">
+                    <input type="text" id="a-pass" placeholder="Parol" class="bg-black border border-slate-700 p-2 w-full text-white">
+                    <button onclick="addAgent()" class="bg-sky-600 px-6 font-bold uppercase text-xs">Qo'shish</button>
+                </div>
+                <div id="agent-list" class="space-y-2"></div>`;
+            renderAgents();
+        }
+    }
+
+    // --- МАҚОЛА ФУНКЦИЯСИ ---
+    async function publish() {
+        const title = document.getElementById('p-title').value;
+        const bodyHtml = quill.root.innerHTML; // Эдитордан HTML матнни олиш
+
+        if(!title || bodyHtml === '<p><br></p>') return alert("Sarlavha va matnni to'ldiring!");
+
+        db.ref('all_posts').push({
+            title: title,
+            body: bodyHtml,
+            author: user.name,
+            date: new Date().toLocaleString()
+        }).then(() => {
+            alert("Maqola e'lon qilindi!");
+            loadCab('posts');
+            renderPublicPosts();
+        });
+    }
+
+    // --- ВИДЕОЧАТ ТАКЛИФНОМАСИ ---
+    function copyInvite() {
+        const inviteText = `Admin приглашает Вас присоединиться к конференции.
+
+Присоединиться к конференции:
+https://meet.jit.si/BUM_Uzbekistan_Meeting
+
+Для того, чтобы присоединиться по телефону, нажмите +1.512.647.1431,,4257792908#
+
+Ищите другой номер для набора?
+Посмотреть номера для набора для конференции: https://meet.jit.si/static/dialInInfo.html?room=bum_uzbekistan_meeting
+
+Если также выполняется набор номера через телефон в комнате, подключитесь в режиме слушателя: https://meet.jit.si/BUM_Uzbekistan_Meeting#config.startSilent=true
+
+Номер: +1.512.647.1431 ПИН: 4257 7929 08#`;
+
+        navigator.clipboard.writeText(inviteText).then(() => {
+            alert("Taklifnoma nusxalandi! Telegram orqali yuborishingiz mumkin.");
+        });
+    }
+
+    // --- АГЕНТЛАРНИ БОШҚАРИШ ---
+    function addAgent() {
+        const name = document.getElementById('a-name').value;
+        const id = document.getElementById('a-tel').value.trim();
+        const password = document.getElementById('a-pass').value;
+        if(name && id && password) {
+            db.ref('agents/' + id).set({name, id, password}).then(() => {
+                alert("Agent qo'shildi!");
+                renderAgents();
+            });
+        }
+    }
+
+    function renderAgents() {
+        db.ref('agents').on('value', s => {
+            const list = document.getElementById('agent-list');
+            if(!list) return;
+            list.innerHTML = "";
+            s.forEach(c => {
+                const a = c.val();
+                list.innerHTML += `<div class="bg-slate-900 p-3 border border-slate-800 flex justify-between items-center">
+                    <span class="text-sm font-bold text-sky-400">${a.name} <small class="text-slate-500 ml-2">ID: ${a.id}</small></span>
+                    <button onclick="deleteAgent('${a.id}')" class="text-rose-500 border border-rose-500 px-3 py-1 text-[10px] hover:bg-rose-500 hover:text-white transition uppercase font-bold">O'chirish</button>
+                </div>`;
+            });
+        });
+    }
+
+    function deleteAgent(id) {
+        if(confirm("Agentni o'chirishni tasdiqlaysizmi?")) {
+            db.ref('agents/' + id).remove().then(() => alert("O'chirildi!"));
+        }
+    }
+
+    // --- ҲИСОБОТ ЮКЛАШ ---
+    async function uploadReport() {
+        const file = document.getElementById('rep-file').files[0];
+        if(!file) return alert("Faylni tanlang!");
+        
+        const fileName = `${Date.now()}_${file.name}`;
+        const ref = storage.ref('reports/' + fileName);
+        
+        alert("Fayl serverga yuklanmoqda...");
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+
+        db.ref('reports').push({
+            sender: user.name,
+            phone: user.phone,
+            fileName: file.name,
+            fileUrl: url,
+            date: new Date().toLocaleString()
+        }).then(() => alert("Hisobot yuborildi!"));
+    }
+
+    function renderReports() {
+        db.ref('reports').on('value', s => {
+            const area = document.getElementById('rep-list');
+            if(!area) return;
+            area.innerHTML = "";
+            s.forEach(c => {
+                const r = c.val();
+                area.innerHTML += `<div class="bg-slate-900 p-4 border-l-4 border-emerald-500 flex justify-between items-center">
+                    <div>
+                        <div class="text-xs font-bold text-emerald-400 uppercase">${r.sender}</div>
+                        <div class="text-[10px] text-slate-500">${r.date} | ${r.fileName}</div>
+                    </div>
+                    <a href="${r.fileUrl}" target="_blank" class="bg-emerald-700 px-4 py-2 text-[10px] font-bold uppercase hover:bg-emerald-600 transition">YUKLAB OLISH</a>
+                </div>`;
+            });
+        });
+    }
+
+    // --- АСОСИЙ САҲИФАДА МАҚОЛАЛАРНИ КЎРСАТИШ ---
+    function renderPublicPosts() {
+        db.ref('all_posts').on('value', s => {
+            const area = document.getElementById('posts-render');
+            if(!area) return;
+            area.innerHTML = "";
+            s.forEach(c => {
+                const p = c.val();
+                area.innerHTML += `
+                    <div class="bg-[#0f172a] border-l-4 border-sky-500 p-6 shadow-xl">
+                        <h3 class="text-2xl font-bold text-sky-400 mb-2 uppercase tracking-tight">${p.title}</h3>
+                        <div class="text-[10px] text-slate-500 mb-6 font-mono">${p.date} | Agent: ${p.author}</div>
+                        <div class="public-post-content text-slate-300 leading-relaxed">${p.body}</div>
+                    </div>`;
+            });
+        });
+    }
+
+    renderPublicPosts();
+</script>
+
+<style>
+    /* Мақола ичидаги расмлар сиғиши учун */
+    .public-post-content img { max-width: 100%; height: auto; border: 1px solid #334155; margin: 15px 0; border-radius: 4px; }
+    .public-post-content h1 { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
+</style>
+
+</body>
+</html>

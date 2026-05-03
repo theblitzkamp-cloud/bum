@@ -3,220 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUM System | Blogspot Style News</title>
+    <title>Universal Media | Янгиликлар лентаси</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #05070a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-        .sidebar { background-color: #0d1117; border-right: 1px solid #30363d; }
-        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; overflow: hidden; }
-        .hidden { display: none !important; }
-        
-        /* Расмлар учун стиль */
-        .news-img { 
-            width: 200px; 
-            height: auto; 
-            object-fit: cover; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            transition: all 0.4s ease; 
-        }
-        .news-img:active { width: 400px; z-index: 50; position: relative; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 
-        /* Blogspot Sidebar Style */
-        .right-widget { border-bottom: 1px solid #30363d; padding-bottom: 1rem; margin-bottom: 1rem; cursor: pointer; }
-        .right-widget:hover { opacity: 0.8; }
-        .editor-btn { background: #30363d; padding: 4px 10px; border-radius: 4px; font-size: 12px; }
-        
-        .rich-text-area { 
-            min-height: 150px; 
-            background: #0d1117; 
-            border: 1px solid #30363d; 
-            border-radius: 8px; 
-            padding: 15px; 
-            outline: none;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+            margin: 0;
+            padding: 0;
         }
+
+        /* Блог услубидаги лента */
+        .blog-container {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Ҳар бир мақола блоки */
+        .blog-post {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 50px;
+            transition: transform 0.3s ease;
+        }
+
+        .blog-post:hover {
+            transform: translateY(-5px);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        /* Мақола сарлавҳаси */
+        .post-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* МАҚОЛА ИЧИДАГИ РАСМЛАРНИ ЖИЛОВЛАШ (ЭНГ МУҲИМ) */
+        .post-content img {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            border-radius: 16px;
+            margin: 25px 0;
+            display: block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        /* Матн созламалари */
+        .post-content {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            word-wrap: break-word;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+        }
+
+        /* Юкланиш эффекти */
+        .loader {
+            border: 4px solid #1e293b;
+            border-top: 4px solid #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 50px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="h-screen overflow-hidden text-sm">
+<body>
 
-    <!-- КИРИШ ОЙНАСИ (Ўзгаришсиз қолди) -->
-    <div id="auth-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black">
-        <div class="card w-full max-w-md p-8 space-y-6">
-            <h2 class="text-2xl font-black text-center text-blue-500 uppercase">BUM SYSTEM</h2>
-            <div class="space-y-4 text-center">
-                <input type="password" id="login-pass" class="w-full bg-[#0d1117] border border-gray-800 rounded-xl p-3 outline-none" placeholder="Паролни киритинг (2026)">
-                <button onclick="handleLogin()" class="w-full bg-blue-600 py-3 rounded-xl font-bold">КИРИШ</button>
-            </div>
+    <!-- Навигация (Агар керак бўлса) -->
+    <nav class="p-6 border-b border-white/10">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tighter">UNIVERSAL <span class="text-sky-400">MEDIA</span></h1>
+            <a href="dashboard.html" class="text-sm bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">Кабинетга қайтиш</a>
         </div>
+    </nav>
+
+    <div class="blog-container" id="posts-wrapper">
+        <div id="loading" class="text-center">
+            <div class="loader"></div>
+            <p>Янгиликлар юкланмоқда...</p>
+        </div>
+        <!-- Мақолалар шу ерга автоматик тушади -->
     </div>
 
-    <!-- АСОСИЙ ПЛАТФОРМА -->
-    <div id="main-app" class="flex h-screen hidden">
-        
-        <!-- SIDEBAR (Чап меню) -->
-        <aside class="sidebar w-64 flex-shrink-0 flex flex-col p-4 space-y-4">
-            <div class="font-black text-2xl text-blue-600 px-2 mb-6">BUM</div>
-            <button onclick="showSection('news-section')" class="flex items-center space-x-3 p-3 bg-blue-600/10 text-blue-400 rounded-xl border border-blue-600/30">
-                <i class="fas fa-newspaper"></i> <span>Янгиликлар</span>
-            </button>
-            <button onclick="handleLogout()" class="mt-auto p-3 bg-red-900/10 text-red-500 rounded-xl font-bold">Чиқиш</button>
-        </aside>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        <!-- CONTENT -->
-        <main class="flex-1 flex flex-col overflow-hidden">
-            
-            <header class="h-16 border-b border-gray-800 flex items-center justify-between px-8 bg-[#0d1117]">
-                <div class="uppercase font-bold tracking-widest text-gray-500">Blogspot News Format</div>
-                <div id="live-clock" class="font-mono text-blue-400"></div>
-            </header>
+        // Firebase созламалари (Сизнинг базангиз)
+        const firebaseConfig = {
+            databaseURL: "https://bumuzbekistan-default-rtdb.firebaseio.com/"
+        };
 
-            <!-- ЯНГИЛИКЛАР САҲИФАСИ -->
-            <div id="news-section" class="content-section flex-1 overflow-y-auto p-6 bg-[#05070a]">
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const wrapper = document.getElementById('posts-wrapper');
+
+        // Мақолаларни олиш
+        const postsRef = ref(db, 'posts');
+        onValue(postsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                wrapper.innerHTML = ''; // Юкланиш ёзувини ўчириш
                 
-                <div class="max-w-7xl mx-auto grid grid-cols-12 gap-8">
+                // Мақолаларни вақти бўйича тескари тартиблаш (янгиси тепада)
+                const keys = Object.keys(data).reverse();
+                
+                keys.forEach(key => {
+                    const post = data[key];
+                    const date = post.date || "03.05.2026";
                     
-                    <!-- ЧАП ТОМОН: МУҲАРРИР ВА АСОСИЙ МАҚОЛАЛАР -->
-                    <div class="col-span-12 lg:col-span-8 space-y-6">
-                        
-                        <!-- ХАБАР ҚОЛДИРИШ (Editor) -->
-                        <div class="card p-6 border-blue-900/20">
-                            <h3 class="font-bold mb-4 flex items-center"><i class="fas fa-pen-nib mr-2"></i> Мақола ёзиш</h3>
-                            
-                            <!-- Editor Toolbar -->
-                            <div class="flex space-x-2 mb-3 bg-[#0d1117] p-2 rounded-lg">
-                                <button onclick="execCmd('bold')" class="editor-btn"><i class="fas fa-bold"></i></button>
-                                <button onclick="execCmd('italic')" class="editor-btn"><i class="fas fa-italic"></i></button>
-                                <button onclick="execCmd('fontSize', '5')" class="editor-btn">A+</button>
-                                <button onclick="execCmd('fontSize', '3')" class="editor-btn">A-</button>
-                                <input type="file" id="img-input" accept="image/*" class="hidden" onchange="previewImage(this)">
-                                <button onclick="document.getElementById('img-input').click()" class="editor-btn"><i class="fas fa-image"></i></button>
+                    const article = `
+                        <article class="blog-post">
+                            <div class="post-meta">
+                                <span>📅 ${date}</span>
+                                <span>•</span>
+                                <span>✍️ Админ</span>
+                                <span>•</span>
+                                <span class="text-sky-400">Янгилик</span>
                             </div>
-
-                            <!-- Editable Area -->
-                            <div id="rich-editor" contenteditable="true" class="rich-text-area mb-4"></div>
-                            <div id="img-preview-box" class="mb-4 hidden">
-                                <img id="preview-img" src="#" class="news-img">
+                            <h2 class="post-title">${post.title}</h2>
+                            <div class="post-content">
+                                ${post.body}
                             </div>
-
-                            <button onclick="savePost()" class="bg-blue-600 px-6 py-2 rounded-lg font-bold uppercase text-xs">Жойлаштириш</button>
-                        </div>
-
-                        <!-- АСОСИЙ МАҚОЛАЛАР ФИДИ -->
-                        <div id="main-feed" class="space-y-6">
-                            <!-- Мақолалар шу ерда кўринади -->
-                        </div>
-                    </div>
-
-                    <!-- ЎНГ ТОМОН: SIDEBAR (КИСҚА ТАЪРИФ ВА ТАРИХ) -->
-                    <div class="col-span-12 lg:col-span-4">
-                        <div class="card p-6 sticky top-0">
-                            <h3 class="font-bold border-b border-gray-800 pb-2 mb-4 uppercase text-xs text-gray-500">Охирги мақолалар</h3>
-                            <div id="recent-widgets" class="space-y-4">
-                                <!-- Кичик мақолалар -->
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <script>
-        let posts = [];
-        let currentImgBase64 = "";
-
-        // 1. ТЕКСТ РЕДАКТОР ФУНКЦИЯЛАРИ
-        function execCmd(cmd, val) {
-            document.execCommand(cmd, false, val);
-        }
-
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    currentImgBase64 = e.target.result;
-                    document.getElementById('preview-img').src = e.target.result;
-                    document.getElementById('img-preview-box').classList.remove('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
+                        </article>
+                    `;
+                    wrapper.innerHTML += article;
+                });
+            } else {
+                wrapper.innerHTML = '<p class="text-center py-20 text-gray-500">Ҳозирча мақолалар мавжуд эмас.</p>';
             }
-        }
-
-        // 2. МАҚОЛАНИ САҚЛАШ
-        function savePost() {
-            const editorContent = document.getElementById('rich-editor').innerHTML;
-            if(!editorContent) return;
-
-            const newPost = {
-                id: Date.now(),
-                content: editorContent,
-                img: currentImgBase64,
-                date: new Date().toLocaleDateString(),
-                short: document.getElementById('rich-editor').innerText.substring(0, 80) + "..."
-            };
-
-            posts.unshift(newPost);
-            
-            // Тозалаш
-            document.getElementById('rich-editor').innerHTML = "";
-            document.getElementById('img-preview-box').classList.add('hidden');
-            currentImgBase64 = "";
-
-            renderAll();
-        }
-
-        // 3. ЭКРАНГА ЧИҚАРИШ (RENDER)
-        function renderAll() {
-            const feed = document.getElementById('main-feed');
-            const widgets = document.getElementById('recent-widgets');
-
-            // Асосий фид
-            feed.innerHTML = posts.map(p => `
-                <div class="card p-8 animate-in slide-in-from-bottom-4 duration-500" id="post-${p.id}">
-                    <div class="text-[10px] text-gray-600 mb-4 font-bold uppercase tracking-widest">${p.date}</div>
-                    <div class="prose prose-invert mb-6 text-lg">
-                        ${p.content}
-                    </div>
-                    ${p.img ? `<img src="${p.img}" class="news-img shadow-xl shadow-black" title="Кўриш учун босинг">` : ''}
-                    <div class="mt-6 pt-6 border-t border-gray-800 flex space-x-4">
-                        <button class="text-xs text-gray-500"><i class="far fa-heart"></i> 0</button>
-                        <button class="text-xs text-gray-500"><i class="far fa-comment"></i> 0</button>
-                    </div>
-                </div>
-            `).join('');
-
-            // Ўнг томондаги виджетлар
-            widgets.innerHTML = posts.map(p => `
-                <div class="right-widget flex space-x-3 items-center" onclick="scrollToPost(${p.id})">
-                    ${p.img ? `<img src="${p.img}" class="w-12 h-12 rounded object-cover">` : '<div class="w-12 h-12 bg-gray-800 rounded"></div>'}
-                    <div>
-                        <div class="text-[11px] font-bold text-blue-400 leading-tight">${p.short}</div>
-                        <div class="text-[9px] text-gray-600 mt-1">${p.date}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function scrollToPost(id) {
-            document.getElementById(`post-${id}`).scrollIntoView({ behavior: 'smooth' });
-            document.getElementById(`post-${id}`).classList.add('ring-2', 'ring-blue-600');
-            setTimeout(() => document.getElementById(`post-${id}`).classList.remove('ring-2', 'ring-blue-600'), 2000);
-        }
-
-        // КИРИШ/ЧИҚИШ
-        function handleLogin() {
-            if(document.getElementById('login-pass').value === "2026") {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
-                setInterval(() => {
-                    document.getElementById('live-clock').innerText = new Date().toLocaleString();
-                }, 1000);
-            }
-        }
-        function handleLogout() { location.reload(); }
+        }, (error) => {
+            console.error("Firebase хатолиги:", error);
+            wrapper.innerHTML = '<p class="text-center text-red-500">Маълумот олишда хатолик юз берди.</p>';
+        });
     </script>
+
 </body>
 </html>

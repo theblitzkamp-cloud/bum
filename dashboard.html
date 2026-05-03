@@ -2,171 +2,244 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ИНТЕЛЛЕКТУАЛ ТИЗИМ | МАХФИЙ БОШҚАРУВ</title>
+    <title>CORE SYSTEM V7 | UNIVERSAL MEDIA</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
+    <script src="https://8x8.vc/vpaas-magic-cookie-887e583c784a4b08b31a56f08149f13e/external_api.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
-        :root { --spy-blue: #00cfec; --spy-dark: #050a10; }
-        body { background-color: var(--spy-dark); color: #c1c7cd; font-family: 'Space Mono', monospace; overflow-x: hidden; }
-        .glass-panel { background: rgba(10, 20, 30, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(0, 207, 236, 0.2); }
+        body { background: #020508; color: #fff; font-family: 'Courier New', monospace; }
         .hidden { display: none !important; }
-        video { width: 100%; height: 100%; object-fit: cover; background: #000; border-radius: 8px; }
+        .glass { background: rgba(10, 20, 30, 0.95); border: 1px solid rgba(0, 207, 236, 0.3); }
+        #editor { min-height: 300px; background: #000; border: 1px solid #1a2a3a; padding: 15px; outline: none; font-size: 14px; overflow-y: auto; color: #e5e7eb; border-radius: 0 0 8px 8px; }
+        .toolbar-btn { background: #111827; padding: 6px 12px; border-radius: 4px; font-size: 11px; border: 1px solid #374151; transition: 0.3s; color: #9ca3af; }
+        .toolbar-btn:hover { background: #00cfec; color: #000; border-color: #00cfec; }
+        #meet-container { width: 100%; height: 500px; border-radius: 12px; background: #000; overflow: hidden; border: 1px solid #1a2a3a; }
+        .nav-btn { display: flex; align-items: center; width: 100%; text-align: left; padding: 10px; border-radius: 6px; transition: 0.2s; font-size: 10px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        .nav-btn:hover { background: rgba(0, 207, 236, 0.1); color: #00cfec; }
     </style>
 </head>
 <body>
 
-    <!-- 1. АСОСИЙ САҲИФА -->
-    <div id="site-main">
-        <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-cyan-600 rounded flex items-center justify-center font-bold text-black">U</div>
-                <span class="text-xl font-bold tracking-tighter text-white uppercase">БИРЛАШГАН ЎЗБЕК МУХОЛИФАТИ</span>
+    <!-- AUTH SECTION -->
+    <div id="auth" class="fixed inset-0 bg-black flex items-center justify-center z-[500]">
+        <div class="glass p-8 w-80 rounded shadow-2xl border-t-4 border-cyan-500">
+            <h2 class="text-center text-cyan-500 font-bold mb-6 text-[10px] tracking-widest uppercase">Система Идентификации</h2>
+            <select id="role" class="w-full bg-black border border-gray-800 p-3 mb-4 text-xs text-cyan-500 outline-none" onchange="toggleInputs()">
+                <option value="active">ФАОЛ (AGENT)</option>
+                <option value="admin">АДМИН (OPERATOR)</option>
+                <option value="boss">РАҲБАР (DIRECTOR)</option>
+            </select>
+            <input type="text" id="login-val" class="w-full bg-black border border-gray-800 p-3 mb-4 text-xs text-white" placeholder="Логин ёки Тел">
+            <div id="pass-box" class="hidden">
+                <input type="password" id="pass-val" class="w-full bg-black border border-gray-800 p-3 mb-4 text-xs text-white" placeholder="Махфий код">
             </div>
-            <button onclick="openLogin()" class="bg-cyan-600 text-black px-4 py-1 rounded hover:bg-cyan-400 transition text-[11px] font-bold uppercase">Шахсий кабинет</button>
-        </nav>
+            <button onclick="login()" class="w-full bg-cyan-600 text-black py-3 font-bold text-xs uppercase">Кириш</button>
+        </div>
+    </div>
 
-        <main class="max-w-7xl mx-auto p-6">
-            <div class="border-l-4 border-cyan-500 p-6 glass-panel mb-8">
-                <h1 class="text-2xl font-bold text-white mb-4 italic">Сўнгги маълумотлар</h1>
-                <p class="text-gray-400">Тизим янгиланмоқда... Ҳисоботлар шахсий кабинетда нашр этилади.</p>
+    <!-- MAIN PANEL -->
+    <div id="panel" class="hidden flex h-screen">
+        <aside class="w-64 bg-gray-950 p-6 border-r border-gray-900 flex flex-col justify-between">
+            <div class="space-y-8">
+                <div class="text-cyan-500 font-bold italic border-b border-cyan-900 pb-2 text-[10px] flex justify-between">
+                    <span>CORE_V7_ACTIVE</span>
+                    <i class="fas fa-signal"></i>
+                </div>
+                <nav class="space-y-2">
+                    <a href="index.html" class="nav-btn text-yellow-500 mb-4 border border-yellow-900/30">
+                        <i class="fas fa-home mr-3"></i> АСОСИЙ САҲИФА
+                    </a>
+                    <button onclick="showSec('v')" class="nav-btn"><i class="fas fa-video mr-3 text-cyan-500"></i> ВИДЕО ЧАТ</button>
+                    <button onclick="showSec('w')" class="nav-btn"><i class="fas fa-pen-nib mr-3 text-cyan-500"></i> МАҚОЛА ЁЗИШ</button>
+                    <button onclick="showSec('f')" class="nav-btn"><i class="fas fa-file-shield mr-3 text-cyan-500"></i> ҲИСОБОТ ЮБОРИШ</button>
+                    <div id="admin-tools" class="hidden pt-6 mt-6 border-t border-gray-800 space-y-2">
+                        <button onclick="showSec('u')" class="nav-btn text-green-500"><i class="fas fa-user-plus mr-3"></i> ФАОЛ ҚЎШИШ</button>
+                        <button onclick="showSec('m')" class="nav-btn text-yellow-500"><i class="fas fa-database mr-3"></i> БАЗАНИ ТОЗАЛАШ</button>
+                    </div>
+                </nav>
+            </div>
+            <button onclick="location.reload()" class="text-red-600 text-[10px] font-bold uppercase hover:text-white transition"><i class="fas fa-power-off mr-2"></i> ЧИҚИШ</button>
+        </aside>
+
+        <main class="flex-1 p-10 overflow-auto bg-[#030712]">
+            <header class="flex justify-between items-center mb-10 border-b border-gray-900 pb-4">
+                <div id="user-display" class="text-cyan-500 text-[10px] font-bold uppercase tracking-widest"></div>
+                <div id="clock" class="text-[9px] text-gray-500 font-bold"></div>
+            </header>
+
+            <!-- 1. Video Chat (Multi-user) -->
+            <div id="sec-v" class="space-y-6">
+                <div id="meet-container">
+                    <div class="flex items-center justify-center h-full text-gray-700 uppercase text-[10px]">Видео алоқани ёқиш учун тугмани босинг</div>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="initMeeting()" class="bg-cyan-700 text-black px-10 py-3 text-[10px] font-bold uppercase hover:bg-cyan-500 transition">Алоқани бошлаш</button>
+                    <button onclick="location.reload()" class="bg-red-900 text-white px-10 py-3 text-[10px] font-bold uppercase hover:bg-red-700 transition">Алоқани узиш</button>
+                </div>
+            </div>
+
+            <!-- 2. Rich Post Editor -->
+            <div id="sec-w" class="hidden max-w-4xl space-y-6">
+                <div class="flex justify-between items-end">
+                    <h3 class="text-cyan-500 text-[10px] font-bold uppercase">Нашр қилиш бўлими</h3>
+                    <select id="post-category" class="bg-gray-900 border border-gray-800 p-2 text-[10px] text-cyan-400 outline-none">
+                        <option value="news">ЯНГИЛИКЛАР</option>
+                        <option value="articles">МАҚОЛАЛАР</option>
+                        <option value="law">ҚОНУН ҲУЖЖАТЛАРИ</option>
+                    </select>
+                </div>
+                <input id="post-title" type="text" placeholder="Сарлавҳа..." class="w-full bg-black border border-gray-800 p-4 text-xs text-white outline-none focus:border-cyan-500 rounded-t-lg">
+                <div class="flex flex-wrap gap-2 p-3 bg-gray-900 border-x border-gray-800">
+                    <button onclick="exec('bold')" class="toolbar-btn"><b>B</b></button>
+                    <button onclick="exec('italic')" class="toolbar-btn"><i>I</i></button>
+                    <button onclick="exec('fontSize', '5')" class="toolbar-btn">Катта</button>
+                    <button onclick="exec('fontSize', '3')" class="toolbar-btn">Кичик</button>
+                    <button onclick="document.getElementById('img-file').click()" class="toolbar-btn"><i class="fas fa-image mr-1"></i> Расм</button>
+                    <input type="file" id="img-file" class="hidden" accept="image/*" onchange="handleImage(this)">
+                </div>
+                <div id="editor" contenteditable="true"></div>
+                <button onclick="savePost()" class="bg-cyan-600 text-black px-12 py-4 text-[10px] font-bold uppercase shadow-lg shadow-cyan-900/20">Нашр этиш</button>
+            </div>
+
+            <!-- 3. Confidential Reports -->
+            <div id="sec-f" class="hidden max-w-xl space-y-6">
+                <div class="border-2 border-dashed border-gray-800 p-16 text-center rounded-xl hover:border-cyan-500 transition-all cursor-pointer bg-black/40" onclick="document.getElementById('secret-file').click()">
+                    <i class="fas fa-cloud-arrow-up text-5xl mb-4 text-gray-800"></i>
+                    <p id="file-name-display" class="text-[10px] text-gray-500 uppercase tracking-widest font-bold text-cyan-500"></p>
+                    <input type="file" id="secret-file" class="hidden" onchange="document.getElementById('file-name-display').innerText = this.files[0].name">
+                </div>
+                <button onclick="uploadSecretFile()" class="w-full bg-cyan-700 text-black py-4 text-[10px] font-bold uppercase">Раҳбарга юбориш</button>
+            </div>
+
+            <!-- 4. Add Agent -->
+            <div id="sec-u" class="hidden max-w-md space-y-6">
+                <div class="glass p-6 space-y-4 rounded-lg">
+                    <input id="new-agent-name" type="text" placeholder="Исми" class="w-full bg-black border border-gray-800 p-3 text-xs">
+                    <input id="new-agent-id" type="text" placeholder="Логин (ID)" class="w-full bg-black border border-gray-800 p-3 text-xs">
+                    <button onclick="addNewAgent()" class="w-full bg-green-700 text-black py-3 text-[10px] font-bold uppercase">Сақлаш</button>
+                </div>
+                <div id="agents-list" class="space-y-2"></div>
+            </div>
+
+            <!-- 5. DB Content -->
+            <div id="sec-m" class="hidden space-y-4">
+                <div id="db-content" class="space-y-2"></div>
             </div>
         </main>
     </div>
 
-    <!-- 2. КИРИШ ОЙНАСИ -->
-    <div id="login-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center hidden z-[100]">
-        <div class="glass-panel p-8 w-full max-w-md border-t-4 border-cyan-500 shadow-2xl">
-            <h2 class="text-center text-white font-bold mb-8 tracking-[4px] uppercase italic">Тизимга кириш</h2>
-            <div class="space-y-4">
-                <select id="user-role" class="w-full bg-black border border-gray-800 p-4 text-xs text-cyan-500 outline-none" onchange="updateLoginFields()">
-                    <option value="active">ФАОЛ (Телефон орқали)</option>
-                    <option value="boss">РАҲБАР (BOSS)</option>
-                </select>
-
-                <!-- Телефон киритиш (Фаоллар учун) -->
-                <div id="phone-container">
-                    <input type="text" id="user-phone" class="w-full bg-black border border-gray-800 p-4 text-xs text-white outline-none focus:border-cyan-500" placeholder="Телефон рақамингиз (901234567)">
-                </div>
-
-                <!-- Пароль киритиш (Раҳбар учун) -->
-                <div id="pass-container" class="hidden">
-                    <input type="password" id="user-pass" class="w-full bg-black border border-gray-800 p-4 text-xs text-white outline-none focus:border-cyan-500" placeholder="Махфий код">
-                </div>
-
-                <button onclick="handleLoginAttempt()" class="w-full bg-cyan-600 text-black font-bold py-4 text-xs uppercase hover:bg-cyan-400 transition">Шифрни очиш</button>
-                <button onclick="closeLogin()" class="w-full text-gray-600 text-[10px] uppercase mt-2">Бекор қилиш</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. ШАХСИЙ КАБИНЕТ (DASHBOARD) -->
-    <div id="dashboard" class="fixed inset-0 bg-[#020508] z-[200] hidden flex">
-        <!-- Sidebar -->
-        <div class="w-64 border-r border-gray-900 p-6 flex flex-col justify-between bg-[#050a10]">
-            <div class="space-y-10">
-                <div class="text-cyan-500 font-bold italic tracking-widest text-sm">AGENT_CORE v4.0</div>
-                <nav class="space-y-6 text-[10px] font-bold uppercase tracking-widest">
-                    <button onclick="switchTab('video')" class="block w-full text-left hover:text-cyan-400"><i class="fas fa-video mr-3"></i> Видео алоқа</button>
-                    <button onclick="switchTab('post')" class="block w-full text-left hover:text-cyan-400"><i class="fas fa-pen-nib mr-3"></i> Ҳисобот ёзиш</button>
-                </nav>
-            </div>
-            <button onclick="location.reload()" class="text-red-600 text-[10px] font-bold uppercase border-t border-gray-900 pt-4"><i class="fas fa-power-off mr-2"></i> Тизимдан чиқиш</button>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="flex-1 p-10 overflow-y-auto">
-            <header class="flex justify-between items-center border-b border-gray-900 pb-6 mb-10">
-                <div id="display-user" class="text-xs font-bold text-cyan-500 uppercase tracking-widest border-l-2 border-cyan-500 pl-4"></div>
-                <div id="clock" class="text-[10px] text-gray-600 font-bold"></div>
-            </header>
-
-            <!-- Video Tab -->
-            <div id="tab-video" class="grid grid-cols-12 gap-8">
-                <div class="col-span-8">
-                    <div class="relative aspect-video rounded-lg overflow-hidden border border-gray-800 bg-black" id="video-wrapper">
-                        <div id="cam-status" class="absolute inset-0 flex items-center justify-center text-gray-700 text-[10px] uppercase font-bold">Камера кутилмоқда...</div>
-                    </div>
-                    <div class="mt-6 flex space-x-4">
-                        <button onclick="startCamera()" class="bg-cyan-700 text-black px-8 py-3 text-[10px] font-bold uppercase">Камерани ёқиш</button>
-                        <button onclick="alert('Ёзиш бошланди...')" class="bg-gray-800 text-white px-8 py-3 text-[10px] font-bold uppercase">REC ●</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Post Tab -->
-            <div id="tab-post" class="hidden max-w-2xl space-y-6">
-                <h3 class="text-cyan-500 font-bold uppercase text-sm italic">Янги ҳисобот юбориш</h3>
-                <input type="text" placeholder="Мавзу..." class="w-full bg-black border border-gray-800 p-4 text-white text-xs outline-none focus:border-cyan-500">
-                <textarea class="w-full bg-black border border-gray-800 p-4 h-64 text-white text-xs outline-none focus:border-cyan-500" placeholder="Батафсил маълумот..."></textarea>
-                <button onclick="alert('Ҳисобот шифрланди ва юборилди!')" class="bg-cyan-600 text-black px-12 py-4 text-[10px] font-bold uppercase hover:bg-cyan-400 transition">Нашр қилиш</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Логин ойнасини бошқариш
-        function openLogin() { document.getElementById('login-modal').classList.remove('hidden'); }
-        function closeLogin() { document.getElementById('login-modal').classList.add('hidden'); }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnDKaFZClF1SS9al1pEyG5iUWCgnRcvBI",
+            authDomain: "bumuzbekistan.firebaseapp.com",
+            databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "bumuzbekistan",
+            storageBucket: "bumuzbekistan.firebasestorage.app",
+            appId: "1:197153596410:web:db18dca78e911a213e3a43"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let userU = ""; let userR = "";
 
-        // Ролга қараб майдонларни ўзгартириш
-        function updateLoginFields() {
-            const role = document.getElementById('user-role').value;
-            document.getElementById('phone-container').classList.toggle('hidden', role !== 'active');
-            document.getElementById('pass-container').classList.toggle('hidden', role !== 'boss');
+        function toggleInputs() {
+            const r = document.getElementById('role').value;
+            document.getElementById('pass-box').classList.toggle('hidden', r == 'active');
         }
 
-        // Киришни текшириш
-        function handleLoginAttempt() {
-            const role = document.getElementById('user-role').value;
-            const phone = document.getElementById('user-phone').value;
-            const pass = document.getElementById('user-pass').value;
+        function login() {
+            const r = document.getElementById('role').value;
+            const l = document.getElementById('login-val').value;
+            const p = document.getElementById('pass-val').value;
 
-            if (role === 'boss' && pass === '1965') {
-                enterDashboard('РАҲБАР (BOSS)');
-            } else if (role === 'active' && phone.length >= 7) {
-                enterDashboard('ФАОЛ АГЕНТ: ' + phone);
-            } else {
-                alert('КИРИШ РАД ЭТИЛДИ: Маълумотлар хато ёки майдон бўш!');
+            if(r == 'boss' && p == '1965') { userU = "DIRECTOR: N.ZOKIROV"; userR = 'boss'; }
+            else if(r == 'admin' && p == '123') { userU = "OPERATOR: ADMIN"; userR = 'admin'; }
+            else if(r == 'active' && l.length > 3) { userU = "AGENT: " + l; userR = 'agent'; }
+            else return alert("Кириш хато!");
+
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('panel').classList.remove('hidden');
+            document.getElementById('user-display').innerText = userU;
+            if(userR == 'boss' || userR == 'admin') {
+                document.getElementById('admin-tools').classList.remove('hidden');
+                loadManagement(); loadAgents();
             }
         }
 
-        // Кабинетга кириш
-        function enterDashboard(user) {
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('site-main').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('display-user').innerText = user;
+        // --- VIDEO CHAT (MULTIUSER) ---
+        function initMeeting() {
+            const domain = "meet.jit.si";
+            const options = {
+                roomName: "UniversalMedia_Private_Room_1975",
+                width: "100%",
+                height: "100%",
+                parentNode: document.querySelector('#meet-container'),
+                userInfo: { displayName: userU },
+                interfaceConfigOverwrite: {
+                    TOOLBAR_BUTTONS: ['microphone', 'camera', 'desktop', 'chat', 'raisehand', 'tileview', 'fullscreen'],
+                    SHOW_JITSI_WATERMARK: false
+                }
+            };
+            document.getElementById('meet-container').innerHTML = "";
+            new JitsiMeetExternalAPI(domain, options);
         }
 
-        // Табларни алмаштириш
-        function switchTab(tab) {
-            document.getElementById('tab-video').classList.add('hidden');
-            document.getElementById('tab-post').classList.add('hidden');
-            document.getElementById('tab-' + tab).classList.remove('hidden');
+        // --- EDITOR ---
+        function exec(cmd, val = null) { document.execCommand(cmd, false, val); }
+        function handleImage(input) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = `<img src="${e.target.result}" style="max-width: 100%; border-radius: 8px; margin: 10px 0;">`;
+                document.getElementById('editor').focus();
+                document.execCommand('insertHTML', false, img);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+        function savePost() {
+            const title = document.getElementById('post-title').value;
+            const cat = document.getElementById('post-category').value;
+            const body = document.getElementById('editor').innerHTML;
+            if(!title || body.length < 20) return alert("Маълумот кам!");
+            db.ref('posts').push({ title, category: cat, body, author: userU, date: new Date().toISOString() })
+              .then(() => { alert("Нашр этилди!"); location.reload(); });
         }
 
-        // Камерани ишга тушириш
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                const videoElement = document.createElement('video');
-                videoElement.srcObject = stream;
-                videoElement.autoplay = true;
-                videoElement.muted = true;
-                const wrapper = document.getElementById('video-wrapper');
-                wrapper.innerHTML = '';
-                wrapper.appendChild(videoElement);
-            } catch (err) {
-                alert('Камерага рухсат берилмади!');
-            }
+        // --- REPORTS ---
+        function uploadSecretFile() {
+            const f = document.getElementById('secret-file').files[0];
+            if(!f) return alert("Файл йўқ!");
+            const reader = new FileReader();
+            reader.onload = e => {
+                db.ref('confidential_reports').push({ sender: userU, fileName: f.name, fileData: e.target.result, date: new Date().toISOString() })
+                  .then(() => alert("Раҳбарга кетди!"));
+            };
+            reader.readAsDataURL(f);
         }
 
-        // Соат
-        setInterval(() => {
-            document.getElementById('clock').innerText = new Date().toLocaleString();
-        }, 1000);
+        // --- GENERAL ---
+        function showSec(s) {
+            ['v','w','f','u','m'].forEach(x => document.getElementById('sec-'+x).classList.add('hidden'));
+            document.getElementById('sec-'+s).classList.remove('hidden');
+        }
+        function addNewAgent() {
+            const n = document.getElementById('new-agent-name').value;
+            const i = document.getElementById('new-agent-id').value;
+            db.ref('agents').push({ name: n, login: i, by: userU });
+        }
+        function loadAgents() {
+            db.ref('agents').on('value', snap => {
+                const l = document.getElementById('agents-list'); l.innerHTML = '';
+                snap.forEach(c => l.innerHTML += `<div class="bg-black border border-gray-900 p-2 text-[9px] flex justify-between"><span>${c.val().name}</span><button onclick="db.ref('agents').child('${c.key}').remove()">X</button></div>`);
+            });
+        }
+        function loadManagement() {
+            db.ref('posts').on('value', snap => {
+                const c = document.getElementById('db-content'); c.innerHTML = '';
+                snap.forEach(i => c.innerHTML += `<div class="bg-gray-950 border border-gray-900 p-2 flex justify-between text-[10px]"><span>${i.val().title}</span><button onclick="db.ref('posts').child('${i.key}').remove()" class="text-red-500">Ўчириш</button></div>`);
+            });
+        }
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString(); }, 1000);
     </script>
 </body>
 </html>

@@ -2,235 +2,110 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ИНТЕЛЛЕКТУАЛ ТИЗИМ | МАХФИЙ БОШҚАРУВ</title>
+    <title>Universal Media | Асосий саҳифа</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
-        
-        :root { --spy-blue: #00cfec; --spy-dark: #050a10; }
-        body { background-color: var(--spy-dark); color: #c1c7cd; font-family: 'Space Mono', monospace; }
-        
-        /* ЦРУ услубидаги интерфейс элементлари */
-        .glass-panel { background: rgba(10, 20, 30, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(0, 207, 236, 0.2); }
-        .nav-link { transition: 0.3s; border-bottom: 2px solid transparent; }
-        .nav-link:hover { color: var(--spy-blue); border-color: var(--spy-blue); }
-        
-        .secret-border { border-left: 4px solid var(--spy-blue); }
-        .video-card { background: #0d1117; border-radius: 8px; overflow: hidden; border: 1px solid #30363d; transition: 0.3s; }
-        .video-card:hover { transform: translateY(-5px); border-color: var(--spy-blue); }
-        
-        #map-overlay { height: 150px; background: #000; border: 1px solid #1a2a3a; margin-top: 10px; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .blog-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .blog-card:hover { transform: translateY(-5px); }
+        .category-badge { font-size: 10px; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+        .nav-link { position: relative; padding-bottom: 5px; }
+        .nav-link::after { content: ''; position: absolute; width: 0; height: 2px; bottom: 0; left: 0; background: #00cfec; transition: 0.3s; }
+        .nav-link:hover::after { width: 100%; }
+        .sticky-nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body>
 
-    <!-- 1. АСОСИЙ НАВИГАЦИЯ -->
-    <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-cyan-600 rounded flex items-center justify-center font-bold text-black">U</div>
-            <span class="text-xl font-bold tracking-tighter text-white">БИРЛАШГАН ЎЗБЕК МУХОЛИФАТИ</span>
+    <!-- Header & Navigation -->
+    <header class="bg-white border-b border-gray-200 sticky-nav">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-black text-gray-800 tracking-tighter">UNIVERSAL<span class="text-cyan-500">MEDIA</span></h1>
+            <nav class="hidden md:flex space-x-8 text-sm font-bold text-gray-600 uppercase tracking-widest">
+                <a href="#" onclick="loadPosts('all')" class="nav-link">Ҳаммаси</a>
+                <a href="#" onclick="loadPosts('news')" class="nav-link">Янгиликлар</a>
+                <a href="#" onclick="loadPosts('articles')" class="nav-link">Мақолалар</a>
+                <a href="#" onclick="loadPosts('law')" class="nav-link">Қонунчилик</a>
+            </nav>
+            <a href="dashboard.html" class="bg-gray-900 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-cyan-500 transition">
+                <i class="fas fa-user-lock mr-2"></i> КАБИНЕТ
+            </a>
         </div>
-        <div class="hidden md:flex space-x-8 text-[11px] font-bold uppercase tracking-widest">
-            <a href="#" onclick="showPage('news')" class="nav-link">Янгиликлар</a>
-            <a href="#" onclick="showPage('docs')" class="nav-link">Қонуний ҳужжатлар</a>
-            <a href="#" onclick="showPage('articles')" class="nav-link">Мақолалар</a>
-            <button onclick="openLogin()" class="bg-cyan-600 text-black px-4 py-1 rounded hover:bg-cyan-400 transition">Шахсий кабинет</button>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gray-900 text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold mb-4">Билим ва Маълумотлар Маркази</h2>
+            <p class="text-gray-400 max-w-2xl mx-auto">Энг сўнгги янгиликлар, таҳлилий мақолалар ва ҳуқуқий ҳужжатлар порталига хуш келибсиз.</p>
         </div>
-    </nav>
+    </section>
 
-    <!-- 2. САҲИФАЛАР (BLOGSPOT ФОРМАТИДА) -->
-    <div id="main-container" class="max-w-7xl mx-auto p-6 grid grid-cols-12 gap-8">
-        
-        <!-- ЧАП ТОМОН: АСОСИЙ МАТН -->
-        <main class="col-span-12 md:col-span-9 space-y-8" id="page-content">
-            <!-- Янгиликлар/Мақолалар шу ерга чиқади -->
-            <div class="secret-border p-6 glass-panel">
-                <h1 class="text-2xl font-bold text-white mb-4" id="content-title">Сўнгги маълумотлар</h1>
-                <div id="content-area" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Видео ёзувлар скриншотдагидек стилда -->
-                </div>
-            </div>
-        </main>
-
-        <!-- ЎНГ ТОМОН: СИЛКАЛАР (САЙДБАР) -->
-        <aside class="col-span-12 md:col-span-3 space-y-6">
-            <div class="glass-panel p-4">
-                <h3 class="text-cyan-500 text-[10px] font-bold uppercase mb-4 tracking-widest">Бўлимлар архиви</h3>
-                <ul class="text-xs space-y-3" id="sidebar-links">
-                    <li><a href="#" class="hover:text-white transition">» Янги мақола номи...</a></li>
-                    <li><a href="#" class="hover:text-white transition">» Инсон ҳуқуқлари бўйича ҳисобот 2026</a></li>
-                </ul>
-            </div>
-        </aside>
-    </div>
-
-    <!-- 3. КИРИШ ОЙНАСИ (LOGIN) -->
-    <div id="login-modal" class="fixed inset-0 bg-black/95 items-center justify-center hidden z-[100]">
-        <div class="glass-panel p-8 w-full max-w-md border-t-4 border-t-cyan-500">
-            <h2 class="text-center text-white font-bold mb-8 tracking-widest uppercase">Тизимга кириш</h2>
-            <div class="space-y-4">
-                <select id="user-role" class="w-full bg-black border border-gray-800 p-3 text-xs text-cyan-500" onchange="toggleLoginType()">
-                    <option value="active">ФАОЛ (Телефон орқали)</option>
-                    <option value="admin">АДМИН</option>
-                    <option value="boss">РАҲБАР (BOSS)</option>
-                </select>
-                <div id="phone-input-div">
-                    <input type="text" id="user-phone" class="w-full bg-black border border-gray-800 p-3 text-xs text-white" placeholder="901234567">
-                </div>
-                <div id="pass-input-div" class="hidden">
-                    <input type="password" id="user-pass" class="w-full bg-black border border-gray-800 p-3 text-xs text-white" placeholder="Пароль">
-                </div>
-                <button onclick="handleLogin()" class="w-full bg-cyan-600 text-black font-bold py-3 text-xs uppercase">Шифрни очиш</button>
-                <button onclick="closeLogin()" class="w-full text-gray-500 text-[10px] uppercase mt-2">Бекор қилиш</button>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <div id="posts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Мақолалар шу ерга юкланади -->
+            <div class="col-span-full text-center py-20 text-gray-400">
+                <i class="fas fa-circle-notch fa-spin text-3xl"></i>
+                <p class="mt-4">Маълумотлар юкланмоқда...</p>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- 4. ШАХСИЙ КАБИНЕТ (CIA/MI6 STYLE) -->
-    <div id="dashboard" class="fixed inset-0 bg-[#020508] z-[200] hidden flex">
-        <!-- Sidebar -->
-        <div class="w-64 border-r border-gray-800 p-6 flex flex-col justify-between">
-            <div>
-                <div class="text-cyan-500 font-bold mb-8">AGENT_CORE v4.0</div>
-                <nav class="space-y-4 text-[10px] font-bold tracking-widest">
-                    <button onclick="switchDash('video')" class="block w-full text-left hover:text-cyan-400 uppercase"><i class="fas fa-video mr-2"></i> Видеоконференция</button>
-                    <button onclick="switchDash('post')" class="block w-full text-left hover:text-cyan-400 uppercase"><i class="fas fa-pen-nib mr-2"></i> Мақола ёзиш</button>
-                    <button onclick="switchDash('reports')" class="block w-full text-left hover:text-cyan-400 uppercase"><i class="fas fa-file-invoice mr-2"></i> Ҳисоботлар</button>
-                </nav>
-            </div>
-            <button onclick="logout()" class="text-red-500 text-[10px] font-bold uppercase"><i class="fas fa-sign-out-alt"></i> Тизимдан чиқиш</button>
+    <footer class="bg-white border-t py-10 mt-20">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-xs">
+            &copy; 2026 Universal Media. Барча ҳуқуқлар ҳимояланган.
         </div>
-
-        <!-- Main Dashboard -->
-        <div class="flex-1 p-8 overflow-y-auto">
-            <header class="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
-                <div id="dash-user-info" class="text-xs font-bold text-cyan-500 uppercase"></div>
-                <div class="text-[10px] text-gray-500" id="current-time"></div>
-            </header>
-
-            <!-- Video Conference Section -->
-            <div id="dash-video" class="grid grid-cols-12 gap-6">
-                <div class="col-span-8 bg-black aspect-video relative border border-gray-800">
-                    <div class="absolute top-4 left-4 bg-red-600 text-white text-[8px] px-2 py-1 rounded animate-pulse" id="rec-indicator" style="display:none">REC ●</div>
-                    <div class="flex items-center justify-center h-full">
-                        <i class="fas fa-users text-6xl text-gray-900"></i>
-                    </div>
-                    <div class="absolute bottom-4 flex space-x-2 px-4 w-full">
-                        <button onclick="startRec()" class="bg-gray-800 text-[10px] px-4 py-2 hover:bg-red-700">Ёзиб олиш</button>
-                        <button class="bg-cyan-700 text-black text-[10px] px-4 py-2">Саклаш</button>
-                    </div>
-                </div>
-                <div class="col-span-4 space-y-4">
-                    <div class="glass-panel p-4 h-full">
-                        <h4 class="text-[9px] text-gray-500 uppercase mb-4">Фаоллар ва Геолокация</h4>
-                        <div id="active-agents" class="space-y-4">
-                            <!-- Агентлар рўйхати -->
-                            <div class="flex items-start space-x-3 text-[9px] border-b border-gray-900 pb-2">
-                                <img src="https://via.placeholder.com/40" class="w-10 h-10 rounded border border-cyan-500">
-                                <div>
-                                    <p class="text-white font-bold">ID: 7788 | +998901234567</p>
-                                    <p class="text-cyan-500"><i class="fas fa-location-dot"></i> 41.0001, 71.6726 (Namangan)</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Content Creation Section -->
-            <div id="dash-post" class="hidden max-w-3xl">
-                <h3 class="text-cyan-500 mb-6 uppercase text-sm font-bold">Янги нашр (4 тилда автоматик таржима)</h3>
-                <input type="text" placeholder="Сарлавҳа..." class="w-full bg-transparent border-b border-gray-800 p-4 mb-4 outline-none text-white">
-                <textarea class="w-full bg-gray-900 border border-gray-800 p-4 h-64 mb-4 outline-none text-xs" placeholder="Мақола ёки шеър матни..."></textarea>
-                <div class="flex space-x-4">
-                    <button class="bg-cyan-600 text-black px-8 py-3 text-[10px] font-bold">3 ТИЛДА ТАРЖИМА ВА НАШР ҚИЛИШ</button>
-                    <input type="file" id="post-img" class="hidden">
-                    <button onclick="document.getElementById('post-img').click()" class="border border-gray-700 px-4 py-3 text-[10px]">РАСМ ҚЎШИШ</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    </footer>
 
     <script>
-        // Саҳифаларни бошқариш
-        function showPage(page) {
-            const title = document.getElementById('content-title');
-            const area = document.getElementById('content-area');
-            if(page === 'news') {
-                title.innerText = "Янгиликлар";
-                area.innerHTML = `
-                    <div class="video-card">
-                        <div class="relative">
-                            <img src="https://via.placeholder.com/400x225" class="w-full">
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <i class="fas fa-play-circle text-5xl text-cyan-500 opacity-80"></i>
-                            </div>
-                        </div>
-                        <div class="p-4">
-                            <h4 class="text-white font-bold text-sm">Троя (фильм, 2004)</h4>
-                            <p class="text-[10px] text-gray-500 mt-2">#Тарих #Кино</p>
-                        </div>
-                    </div>
-                `;
-            }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnDKaFZClF1SS9al1pEyG5iUWCgnRcvBI",
+            authDomain: "bumuzbekistan.firebaseapp.com",
+            databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "bumuzbekistan",
+            storageBucket: "bumuzbekistan.firebasestorage.app",
+            appId: "1:197153596410:web:db18dca78e911a213e3a43"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function loadPosts(category = 'all') {
+            const container = document.getElementById('posts-container');
+            db.ref('posts').on('value', snap => {
+                container.innerHTML = '';
+                let count = 0;
+                snap.forEach(child => {
+                    const data = child.val();
+                    if(category === 'all' || data.category === category) {
+                        count++;
+                        const date = new Date(data.date).toLocaleDateString('uz-UZ');
+                        const catLabel = data.category === 'news' ? 'Янгилик' : (data.category === 'law' ? 'Қонунчилик' : 'Мақола');
+                        const catColor = data.category === 'news' ? 'bg-blue-100 text-blue-600' : (data.category === 'law' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600');
+
+                        container.innerHTML += `
+                            <article class="blog-card border border-gray-100 flex flex-col">
+                                <div class="p-6 flex-1">
+                                    <span class="category-badge ${catColor}">${catLabel}</span>
+                                    <h3 class="text-xl font-bold mt-3 mb-3 text-gray-800 leading-tight">${data.title}</h3>
+                                    <div class="text-gray-600 text-sm mb-4 line-clamp-3">${data.body}</div>
+                                </div>
+                                <div class="px-6 py-4 border-t border-gray-50 flex justify-between items-center bg-gray-50/50">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase">${date}</span>
+                                    <span class="text-[10px] text-cyan-600 font-bold uppercase italic">${data.author || 'Админ'}</span>
+                                </div>
+                            </article>
+                        `;
+                    }
+                });
+                if(count === 0) container.innerHTML = '<p class="col-span-full text-center text-gray-400">Ҳозирча бу бўлимда мақолалар йўқ.</p>';
+            });
         }
 
-        // Логин тизими
-        function openLogin() { document.getElementById('login-modal').classList.remove('hidden'); document.getElementById('login-modal').classList.add('flex'); }
-        function closeLogin() { document.getElementById('login-modal').classList.add('hidden'); }
-        
-        function toggleLoginType() {
-            const role = document.getElementById('user-role').value;
-            if(role === 'active') {
-                document.getElementById('phone-input-div').classList.remove('hidden');
-                document.getElementById('pass-input-div').classList.add('hidden');
-            } else {
-                document.getElementById('phone-input-div').classList.add('hidden');
-                document.getElementById('pass-input-div').classList.remove('hidden');
-            }
-        }
-
-        function handleLogin() {
-            const role = document.getElementById('user-role').value;
-            const pass = document.getElementById('user-pass').value;
-            const phone = document.getElementById('user-phone').value;
-            
-            if(role === 'boss' && pass === '1965') {
-                enterDashboard('РАҲБАР (BOSS)');
-            } else if (role === 'active' && phone.length > 5) {
-                enterDashboard('ФАОЛ АГЕНТ: ' + phone);
-            } else {
-                alert('КИРИШ РАД ЭТИЛДИ: Маълумотлар нотўғри!');
-            }
-        }
-
-        function enterDashboard(user) {
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('dash-user-info').innerText = user;
-        }
-
-        function switchDash(target) {
-            document.getElementById('dash-video').classList.add('hidden');
-            document.getElementById('dash-post').classList.add('hidden');
-            document.getElementById('dash-' + target).classList.remove('hidden');
-        }
-
-        function logout() { location.reload(); }
-
-        function startRec() {
-            document.getElementById('rec-indicator').style.display = 'block';
-            alert('ВИДЕО ЁЗИШ БОШЛАНДИ. МАЪЛУМОТ ШИФРЛАНМОҚДА...');
-        }
-
-        // Вақт
-        setInterval(() => {
-            document.getElementById('current-time').innerText = new Date().toLocaleString();
-        }, 1000);
+        loadPosts();
     </script>
 </body>
 </html>

@@ -7,70 +7,78 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
-        .news-wrapper { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-        .post-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; margin-bottom: 40px; }
-        .post-content img { width: 100%; height: auto; border-radius: 12px; margin: 20px 0; }
-        .post-content { line-height: 1.8; font-size: 1.1rem; color: #cbd5e1; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        .blog-grid { display: grid; grid-template-columns: 1fr 320px; gap: 30px; max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        @media (max-width: 850px) { .blog-grid { grid-template-columns: 1fr; } }
+        .post-card { background: white; border-radius: 16px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .sidebar-widget { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 20px; }
+        .lang-active { background-color: #38bdf8 !important; color: white !important; }
+        .post-body img { width: 100%; border-radius: 12px; margin: 20px 0; }
     </style>
 </head>
 <body>
 
-    <div class="news-wrapper">
-        <h1 class="text-4xl font-black text-sky-400 mb-10 text-center">Сўнгги янгиликлар</h1>
-        
-        <div id="news-feed">
-            <div id="loading-status" class="text-center py-20 text-gray-400">
-                Маълумотлар базаси билан алоқа ўрнатилмоқда...
+<div class="blog-grid">
+    <main id="news-container">
+        <div class="text-center py-20 text-gray-400">Юкланмоқда...</div>
+    </main>
+
+    <aside>
+        <div class="sidebar-widget">
+            <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Тилни танланг</h3>
+            <div class="flex gap-2 mb-6">
+                <button onclick="setLang('uz')" id="btn-uz" class="lang-active flex-1 py-2 bg-gray-100 rounded-lg text-sm font-bold">UZ</button>
+                <button onclick="setLang('ru')" id="btn-ru" class="flex-1 py-2 bg-gray-100 rounded-lg text-sm font-bold">RU</button>
+                <button onclick="setLang('en')" id="btn-en" class="flex-1 py-2 bg-gray-100 rounded-lg text-sm font-bold">EN</button>
             </div>
+            <h3 class="font-bold text-gray-800 mb-2">Лойиҳа ҳақида</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+                Бирлашган Ўзбек Мухолифати портали. Мақолалар базада 3 тилда сақланади.
+            </p>
         </div>
-    </div>
+    </aside>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // КОНСОЛДАГИ ХАТОЛИКНИ ТУЗАТУВЧИ КОНФИГУРАЦИЯ
-        const firebaseConfig = {
-            // Скриншотдаги (image_fcd504.png) тўғри манзил:
-            databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app"
-        };
+    const firebaseConfig = { databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app" };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    let currentLang = 'uz';
+    let postsData = [];
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const newsFeed = document.getElementById('news-feed');
-        const loadingStatus = document.getElementById('loading-status');
+    window.setLang = (lang) => {
+        currentLang = lang;
+        document.querySelectorAll('button[id^="btn-"]').forEach(b => b.classList.remove('lang-active'));
+        document.getElementById(`btn-${lang}`).classList.add('lang-active');
+        render();
+    };
 
-        const postsRef = ref(db, 'posts');
-        
-        onValue(postsRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                loadingStatus.style.display = 'none'; // Юкланиш матнини олиб ташлаш
-                newsFeed.innerHTML = ''; // Контейнерни тозалаш
-                
-                const keys = Object.keys(data).reverse();
-                keys.forEach(key => {
-                    const post = data[key];
-                    newsFeed.innerHTML += `
-                        <div class="post-card">
-                            <div class="text-xs text-sky-400 font-bold mb-2 uppercase tracking-widest">
-                                📅 ${post.date || '03.05.2026'}
-                            </div>
-                            <h2 class="text-3xl font-extrabold text-white mb-4 leading-tight">${post.title}</h2>
-                            <div class="post-content">
-                                ${post.body}
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                loadingStatus.innerText = "Ҳозирча мақолалар мавжуд эмас.";
-            }
-        }, (error) => {
-            loadingStatus.innerText = "Хатолик: Маълумот олиш имконсиз.";
-            console.error("Firebase хатолиги:", error);
+    onValue(ref(db, 'posts'), (snapshot) => {
+        const data = snapshot.val();
+        if(data) {
+            postsData = Object.values(data).reverse();
+            render();
+        }
+    });
+
+    function render() {
+        const container = document.getElementById('news-container');
+        container.innerHTML = '';
+        postsData.forEach(post => {
+            const content = post[currentLang] || post['uz']; // Агар тил топилмаса ўзбекчасини чиқаради
+            container.innerHTML += `
+                <div class="post-card">
+                    <div class="text-[11px] font-bold text-sky-500 mb-2">📅 ${post.date}</div>
+                    <h2 class="text-3xl font-black text-gray-900 mb-4">${content.title}</h2>
+                    <div class="post-body text-gray-600 text-lg leading-relaxed">${content.body}</div>
+                </div>
+            `;
         });
-    </script>
+    }
+</script>
 </body>
 </html>

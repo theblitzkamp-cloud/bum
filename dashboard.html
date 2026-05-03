@@ -225,29 +225,41 @@
         }
 
         // --- VIDEO CHAT SYSTEM ---
-    function initMeeting() {
+function initMeeting() {
     const domain = "meet.jit.si";
     const options = {
-        roomName: "UniversalMedia_Secure_Line_2026", // Хона номи доимий бўлсин
+        roomName: "UniversalMedia_Secure_Line_2026", // Телефонда ҳам айнан шу ном бўлиши шарт
         width: "100%",
         height: "100%",
         parentNode: document.querySelector('#meet-container'),
         userInfo: { 
-            displayName: "ADMIN" // Сизнинг исмингиз
+            displayName: userU // Сиз кирган логин исми автоматик чиқади
         },
         configOverwrite: {
-            prejoinPageEnabled: false,    // МА Mana шу тугмани ўчиради!
-            startWithAudioMuted: false,   // Микрофон ёқилган ҳолда кириш
-            startWithVideoMuted: false,   // Видео ёқилган ҳолда кириш
-            enableWelcomePage: false      // Jitsi асосий саҳифасини кўрсатмайди
+            prejoinPageEnabled: false,    // МОДДИЙ ТУГМАНИ ЎЧИРАДИ (Тўғридан-тўғри кириш)
+            startWithAudioMuted: false,   // Микрофон ёқиқ ҳолда кириш
+            startWithVideoMuted: false,   // Камера ёқиқ ҳолда кириш
+            enableWelcomePage: false,     // Ортиқча саҳифаларни кўрсатмайди
+            enableNoAudioDetection: true
         },
         interfaceConfigOverwrite: {
-            TILE_VIEW_MAX_COLUMNS: 8,     // Фаолларни катакларда кўриш учун
-            MOBILE_APP_PROMO: false       // Телефонда иловани реклама қилмайди
+            TILE_VIEW_MAX_COLUMNS: 8,     // Барча фаолларни катакларда кўриш
+            MOBILE_APP_PROMO: false,      // Телефонда илова рекламасини ўчириш
+            TOOLBAR_BUTTONS: [
+                'microphone', 'camera', 'desktop', 'chat', 'tileview', 
+                'fullscreen', 'hangup', 'videoquality', 'participants-pane'
+            ]
         }
     };
+    
+    // Эски ойнани тозалаб, янгисини юклаш
     document.getElementById('meet-container').innerHTML = "";
     const api = new JitsiMeetExternalAPI(domain, options);
+
+    // Уланиш амалга оширилганда хабар чиқариш
+    api.addEventListener('videoConferenceJoined', () => {
+        console.log("Видео алоқа муваффақиятли бошланди!");
+    });
 }
 
         // --- RECORDING SYSTEM ---

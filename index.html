@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ўзбекистон Ташаббускорлар Маркази</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts орқали шрифт қўшиш -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="container">
+            <div class="top-nav">
+                <div class="date" id="current-date"></div>
+                <div class="socials">
+                    <a href="#">FB</a> <a href="#">TG</a> <a href="#">YT</a>
+                </div>
+            </div>
+            
+            <div class="branding">
+                <img src="logo.png" alt="Logo" class="logo">
+                <h1>ЎЗБЕКИСТОН ТАШАББУСКОРЛАР МАРКАЗИ</h1>
+                <p>Адолат ва ҳақиқат йўлида бирлашамиз</p>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav-bar">
+        <div class="container">
+            <ul>
+                <li><a href="#" class="active">Бош саҳифа</a></li>
+                <li><a href="#">Сиёсат</a></li>
+                <li><a href="#">Инсон ҳуқуқлари</a></li>
+                <li><a href="#">Коррупция</a></li>
+                <li><a href="#">Жамият</a></li>
+                <li><a href="#">Биз билан боғланиш</a></li>
+                <li><a href="sg.html">Шахсий кабиент</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container main-content">
+        <section class="breaking-news">
+            <h2>МУҲИМ ХАБАРЛАР</h2>
+            <div class="grid-layout">
+                <article class="featured-card">
+                    <img src="news-thumb.jpg" alt="News">
+                    <div class="card-text">
+                        <h3>Ислоҳотлар ва кутилаётган натижалар</h3>
+                        <p>Мамлакатдаги сиёсий вазиятнинг таҳлилий шарҳи...</p>
+                        <span class="meta">15 дақиқа олдин | Сиёсат</span>
+                    </div>
+                </article>
+                
+                <!-- Кичик хабарлар учун ён панел -->
+                <aside class="side-news">
+                    <div class="mini-card">
+                        <h4>Янги қонун лойиҳаси муҳокамада</h4>
+                        <span>Бугун, 14:20</span>
+                    </div>
+                    <div class="mini-card">
+                        <h4>Фаолларнинг навбатдаги учрашуви</h4>
+                        <span>Кеча, 18:00</span>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Санани автоматик чиқариш
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' });
+    </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+/* Асосий созламалар */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.6;
+    background-color: #f4f7f6;
+    color: #333;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header қисми */
+.main-header {
+    background-color: #fff;
+    padding: 20px 0;
+    border-bottom: 3px solid #003366; /* Тўқ кўк чизиқ */
+}
+
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.branding {
+    text-align: center;
+}
+
+.logo {
+    width: 80px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.branding h1 {
+    font-size: 2.2rem;
+    color: #003366;
+    letter-spacing: 1px;
+}
+
+.branding p {
+    font-style: italic;
+    color: #666;
+}
+
+/* Навигация менюси */
+.nav-bar {
+    background-color: #003366;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-bar ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-bar ul li a {
+    display: block;
+    color: #fff;
+    padding: 15px 20px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.nav-bar ul li a:hover, .nav-bar ul li a.active {
+    background-color: #004a99;
+    color: #ffd700; /* Тилла ранг урғу */
+}
+
+/* Контент қисми (Grid тизими) */
+.main-content {
+    margin-top: 30px;
+    padding-bottom: 50px;
+}
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+}
+
+/* Асосий хабар картаси */
+.featured-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.featured-card img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+.card-text {
+    padding: 25px;
+}
+
+.card-text h3 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #222;
+}
+
+.card-text .meta {
+    display: block;
+    margin-top: 15px;
+    font-size: 0.85rem;
+    color: #999;
+}
+
+/* Ён панел */
+.side-news {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mini-card {
+    background: #fff;
+    padding: 15px;
+    border-left: 4px solid #003366;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.mini-card h4 {
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.mini-card h4:hover {
+    color: #004a99;
+}
+
+.mini-card span {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+/* Мобил қурилмалар учун мослашув (Responsive) */
+@media (max-width: 768px) {
+    .grid-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .nav-bar ul {
+        flex-wrap: wrap;
+    }
+    
+    .branding h1 {
+        font-size: 1.5rem;
+    }
+}

@@ -2,110 +2,139 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Media | Асосий саҳифа</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БУМ | Бирлашган Ўзбек Мухолифати</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .blog-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .blog-card:hover { transform: translateY(-5px); }
-        .category-badge { font-size: 10px; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-        .nav-link { position: relative; padding-bottom: 5px; }
-        .nav-link::after { content: ''; position: absolute; width: 0; height: 2px; bottom: 0; left: 0; background: #00cfec; transition: 0.3s; }
-        .nav-link:hover::after { width: 100%; }
-        .sticky-nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        /* МАҚОЛАЛАР БЛОКИ (БЛОГ УСЛУБИ) */
+        .post-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 35px;
+            margin-bottom: 40px;
+            height: auto !important; /* Тўлиқ чиқишини таъминлайди */
+        }
+
+        .post-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #38bdf8;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        /* РАСМЛАРНИ АВТОМАТИК ТЎҒРИЛАШ */
+        .post-content img {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            border-radius: 16px;
+            margin: 20px 0;
+            display: block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .post-content {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            word-wrap: break-word;
+        }
+
+        .nav-link:hover {
+            color: #38bdf8;
+            border-bottom: 2px solid #38bdf8;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header & Navigation -->
-    <header class="bg-white border-b border-gray-200 sticky-nav">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-black text-gray-800 tracking-tighter">UNIVERSAL<span class="text-cyan-500">MEDIA</span></h1>
-            <nav class="hidden md:flex space-x-8 text-sm font-bold text-gray-600 uppercase tracking-widest">
-                <a href="#" onclick="loadPosts('all')" class="nav-link">Ҳаммаси</a>
-                <a href="news.html" onclick="loadPosts('news')" class="nav-link">Янгиликлар</a>
-                <a href="#" onclick="loadPosts('articles')" class="nav-link">Мақолалар</a>
-                <a href="#" onclick="loadPosts('law')" class="nav-link">Қонунчилик</a>
+    <!-- Header -->
+    <header class="header-gradient p-6 border-b border-white/10 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-black tracking-tighter">БУМ</h1>
+                <p class="text-[10px] uppercase tracking-widest text-sky-400">Бирлашган Ўзбек Мухолифати</p>
+            </div>
+            <nav class="hidden md:flex space-x-8 font-medium">
+                <a href="#" class="nav-link transition">Ҳаммаси</a>
+                <a href="news.html" class="nav-link transition">Янгиликлар</a>
+                <a href="#" class="nav-link transition">Мақолалар</a>
+                <a href="#" class="nav-link transition">Қонунчилик</a>
             </nav>
-            <a href="dashboard.html" class="bg-gray-900 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-cyan-500 transition">
-                <i class="fas fa-user-lock mr-2"></i> КАБИНЕТ
+            <a href="dashboard.html" class="bg-sky-500 hover:bg-sky-600 px-6 py-2 rounded-full text-sm font-bold transition">
+                КАБИНЕТ
             </a>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="bg-gray-900 text-white py-16">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-4xl font-bold mb-4">Билим ва Маълумотлар Маркази</h2>
-            <p class="text-gray-400 max-w-2xl mx-auto">Энг сўнгги янгиликлар, таҳлилий мақолалар ва ҳуқуқий ҳужжатлар порталига хуш келибсиз.</p>
-        </div>
+    <!-- Банер -->
+    <section class="py-20 text-center">
+        <h2 class="text-5xl md:text-7xl font-extrabold mb-4">Билим ва Маълумотлар Маркази</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Энг сўнгги янгиликлар, таҳлилий мақолалар ва ҳуқуқий ҳужжатлар порталига хуш келибсиз.</p>
     </section>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-12">
-        <div id="posts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Мақолалар шу ерга юкланади -->
-            <div class="col-span-full text-center py-20 text-gray-400">
-                <i class="fas fa-circle-notch fa-spin text-3xl"></i>
-                <p class="mt-4">Маълумотлар юкланмоқда...</p>
-            </div>
+    <!-- Мақолалар лентаси -->
+    <main class="max-w-4xl mx-auto px-6 pb-20">
+        <div id="news-container">
+            <div class="text-center py-10">Маълумотлар юкланмоқда...</div>
         </div>
     </main>
 
-    <footer class="bg-white border-t py-10 mt-20">
-        <div class="container mx-auto px-4 text-center text-gray-500 text-xs">
-            &copy; 2026 Universal Media. Барча ҳуқуқлар ҳимояланган.
-        </div>
-    </footer>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    <script>
+        // ЕВРОПА СЕРВЕРИ УЧУН ТЎҒРИЛАНГАН КОНФИГУРАЦИЯ
         const firebaseConfig = {
-            apiKey: "AIzaSyBnDKaFZClF1SS9al1pEyG5iUWCgnRcvBI",
-            authDomain: "bumuzbekistan.firebaseapp.com",
-            databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "bumuzbekistan",
-            storageBucket: "bumuzbekistan.firebasestorage.app",
-            appId: "1:197153596410:web:db18dca78e911a213e3a43"
+            databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
-        function loadPosts(category = 'all') {
-            const container = document.getElementById('posts-container');
-            db.ref('posts').on('value', snap => {
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const container = document.getElementById('news-container');
+
+        const postsRef = ref(db, 'posts');
+        onValue(postsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
                 container.innerHTML = '';
-                let count = 0;
-                snap.forEach(child => {
-                    const data = child.val();
-                    if(category === 'all' || data.category === category) {
-                        count++;
-                        const date = new Date(data.date).toLocaleDateString('uz-UZ');
-                        const catLabel = data.category === 'news' ? 'Янгилик' : (data.category === 'law' ? 'Қонунчилик' : 'Мақола');
-                        const catColor = data.category === 'news' ? 'bg-blue-100 text-blue-600' : (data.category === 'law' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600');
-
-                        container.innerHTML += `
-                            <article class="blog-card border border-gray-100 flex flex-col">
-                                <div class="p-6 flex-1">
-                                    <span class="category-badge ${catColor}">${catLabel}</span>
-                                    <h3 class="text-xl font-bold mt-3 mb-3 text-gray-800 leading-tight">${data.title}</h3>
-                                    <div class="text-gray-600 text-sm mb-4 line-clamp-3">${data.body}</div>
-                                </div>
-                                <div class="px-6 py-4 border-t border-gray-50 flex justify-between items-center bg-gray-50/50">
-                                    <span class="text-[10px] text-gray-400 font-bold uppercase">${date}</span>
-                                    <span class="text-[10px] text-cyan-600 font-bold uppercase italic">${data.author || 'Админ'}</span>
-                                </div>
-                            </article>
-                        `;
-                    }
+                const keys = Object.keys(data).reverse();
+                
+                keys.forEach(key => {
+                    const post = data[key];
+                    container.innerHTML += `
+                        <article class="post-card">
+                            <div class="flex items-center space-x-3 text-xs text-sky-400 mb-4 uppercase font-bold tracking-widest">
+                                <span>Янгилик</span>
+                                <span class="text-gray-600">|</span>
+                                <span class="text-gray-400">${post.date || '03.05.2026'}</span>
+                            </div>
+                            <h2 class="post-title">${post.title}</h2>
+                            <div class="post-content">
+                                ${post.body}
+                            </div>
+                        </article>
+                    `;
                 });
-                if(count === 0) container.innerHTML = '<p class="col-span-full text-center text-gray-400">Ҳозирча бу бўлимда мақолалар йўқ.</p>';
-            });
-        }
-
-        loadPosts();
+            } else {
+                container.innerHTML = '<p class="text-center text-gray-500">Ҳозирча мақолалар мавжуд эмас.</p>';
+            }
+        });
     </script>
 </body>
 </html>

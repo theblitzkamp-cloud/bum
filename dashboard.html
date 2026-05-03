@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUM HQ | Secure System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { background-color: #020408; color: #00ff41; font-family: 'JetBrains Mono', monospace; overflow: hidden; margin: 0; }
+        
+        #login-overlay { 
+            background: radial-gradient(circle, #0d1117 0%, #020408 100%); 
+            z-index: 10000; 
+        }
+        .auth-card { background: #0d1117; border: 1px solid #30363d; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.9); }
+        .auth-input { background: #000 !important; border: 1px solid #30363d !important; color: #58a6ff !important; text-align: center; outline: none; }
+        
+        .agency-card { background: rgba(13, 17, 23, 0.9); border: 1px solid #1f2937; border-left: 4px solid #2563eb; }
+        #map { height: 250px; width: 100%; border-radius: 8px; filter: invert(100%) hue-rotate(180deg) brightness(0.6); }
+        .active-user-card { background: rgba(255,255,255,0.05); border: 1px solid #1f2937; transition: 0.3s; }
+        
+        .hidden { display: none !important; }
+        .home-link { color: #fbbf24; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; cursor: pointer; }
+    </style>
+</head>
+<body class="h-screen flex">
+
+    <!-- 1. ЛОГИН ОЙНАСИ -->
+    <div id="login-overlay" class="fixed inset-0 flex items-center justify-center">
+        <div class="auth-card p-10 w-full max-w-sm text-center">
+            <div class="mb-8">
+                <i class="fas fa-user-shield text-5xl text-blue-600 mb-4"></i>
+                <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter">BUM SYSTEM</h2>
+                <p class="text-[9px] text-gray-500 uppercase tracking-[3px] mt-2">Кириш учун идентификация керак</p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="text" id="sys_user" class="auth-input w-full p-4 rounded-xl" placeholder="Логин" autocomplete="off">
+                <input type="password" id="sys_pass" class="auth-input w-full p-4 rounded-xl" placeholder="Пароль">
+                <button id="login-btn" onclick="checkAuth()" class="w-full bg-blue-600 text-black font-black py-4 rounded-xl uppercase text-xs tracking-widest hover:bg-blue-500 transition-all">Тизимга кириш</button>
+            </div>
+            
+            <div id="auth-error" class="text-red-500 text-[10px] font-bold mt-4 hidden uppercase">Хато маълумот!</div>
+
+            <div class="mt-8 border-t border-gray-800 pt-6">
+                <a href="index.html" class="home-link font-bold">
+                    <i class="fas fa-arrow-left mr-2"></i> Асосий саҳифага қайтиш
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. АСОСИЙ КАБИНЕТ -->
+    <div id="main-content" class="h-screen w-full flex hidden">
+        <aside class="w-72 bg-[#080a0f] border-r border-gray-800 flex flex-col">
+            <div class="p-6 border-b border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-microchip text-2xl text-blue-500"></i>
+                    <span class="font-black text-xl text-white">BUM HQ</span>
+                </div>
+            </div>
+            <nav class="flex-1 p-4">
+                <div class="p-4 bg-blue-900/10 rounded-xl border border-blue-900/20">
+                    <p class="text-[10px] text-blue-500 font-bold uppercase">Актив Сардор</p>
+                    <p class="text-white font-bold text-sm">Вячеслав Качанов</p>
+                </div>
+            </nav>
+            <div class="p-6">
+                <button onclick="logoutSystem()" class="w-full p-3 bg-red-900/10 text-red-500 rounded border border-red-900/30 text-xs font-bold uppercase hover:bg-red-900/20 transition">Тизимдан чиқиш</button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col">
+            <header class="h-16 border-b border-gray-800 flex items-center justify-between px-8 bg-[#0d1117]">
+                <div class="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Secure Line: Active</div>
+                <div id="clock" class="text-blue-500 font-bold"></div>
+            </header>
+
+            <div class="flex-1 overflow-hidden p-8">
+                <div class="grid grid-cols-12 gap-6 h-full">
+                    <div class="col-span-8 flex flex-col space-y-4">
+                        <div class="flex-1 bg-black rounded-xl border border-gray-800 relative flex items-center justify-center">
+                            <i class="fas fa-video-slash text-gray-800 text-6xl"></i>
+                        </div>
+                        <button onclick="openModal()" class="bg-blue-600 text-black py-4 rounded-xl font-black text-xs uppercase hover:bg-blue-500">Янги фаол қўшиш</button>
+                    </div>
+                    <div class="col-span-4 flex flex-col space-y-4 overflow-hidden">
+                        <div class="agency-card p-2"><div id="map"></div></div>
+                        <div class="agency-card p-4 flex-1 overflow-y-auto">
+                            <h4 class="text-[10px] text-gray-500 uppercase mb-4 font-bold">Рўйхат</h4>
+                            <div id="members-list" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Элементларни оламиз
+        const loginOverlay = document.getElementById('login-overlay');
+        const mainContent = document.getElementById('main-content');
+        const authError = document.getElementById('auth-error');
+
+        // КИРИШНИ ТЕКШИРИШ
+        function checkAuth() {
+            const user = document.getElementById('sys_user').value.trim();
+            const pass = document.getElementById('sys_pass').value.trim();
+
+            if (user === "bum" && pass === "2026") {
+                loginOverlay.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                initMap(); // Харита фақат киргандан кейин чиқади
+            } else {
+                authError.classList.remove('hidden');
+                setTimeout(() => authError.classList.add('hidden'), 2000);
+                document.getElementById('sys_pass').value = "";
+            }
+        }
+
+        // ЧИҚИШ
+        function logoutSystem() {
+            if(confirm('Тизимдан чиқасизми?')) {
+                location.reload(); // Саҳифани қайта юклаш энг хавфсиз йўл
+            }
+        }
+
+        // ENTER ТУГМАСИ
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !loginOverlay.classList.contains('hidden')) {
+                checkAuth();
+            }
+        });
+
+        // ХАРИТА ВА ФУНКЦИЯЛАР
+        let map;
+        function initMap() {
+            if (!map) {
+                map = L.map('map', { zoomControl: false }).setView([41.0001, 71.6726], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            }
+        }
+
+        setInterval(() => { 
+            const clock = document.getElementById('clock');
+            if(clock) clock.innerText = new Date().toLocaleTimeString(); 
+        }, 1000);
+    </script>
+</body>
+</html>

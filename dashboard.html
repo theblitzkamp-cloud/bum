@@ -226,23 +226,25 @@
 
         // --- VIDEO CHAT SYSTEM ---
         function initMeeting() {
-            const domain = "meet.jit.si";
-            const options = {
-                roomName: "UniversalMedia_Private_Room_1975_2026",
-                width: "100%",
-                height: "100%",
-                parentNode: document.querySelector('#meet-container'),
-                userInfo: { displayName: userU },
-                interfaceConfigOverwrite: {
-                    TOOLBAR_BUTTONS: ['microphone', 'camera', 'desktop', 'chat', 'tileview', 'fullscreen', 'hangup'],
-                    SHOW_JITSI_WATERMARK: false,
-                    MOBILE_APP_PROMO: false
-                },
-                configOverwrite: { startWithAudioMuted: true, startWithVideoMuted: false }
-            };
-            document.getElementById('meet-container').innerHTML = "";
-            new JitsiMeetExternalAPI(domain, options);
+    const domain = "meet.jit.si";
+    const options = {
+        roomName: "UniversalMedia_Secure_Line_2026", // Доимий хона номи
+        width: "100%",
+        height: "100%",
+        parentNode: document.querySelector('#meet-container'),
+        userInfo: { displayName: userU },
+        configOverwrite: {
+            startWithAudioMuted: true,
+            prejoinPageEnabled: false, // Текширув ойнасини ўчиради
+            enableWelcomePage: false
+        },
+        interfaceConfigOverwrite: {
+            MOBILE_APP_PROMO: false // Иловани юклаб олиш ҳақидаги рекламани ўчиради
         }
+    };
+    document.getElementById('meet-container').innerHTML = "";
+    new JitsiMeetExternalAPI(domain, options);
+}
 
         // --- RECORDING SYSTEM ---
         async function startRecording() {

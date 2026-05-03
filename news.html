@@ -3,167 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Media | Янгиликлар лентаси</title>
+    <title>Universal Media | Янгиликлар</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f1f5f9;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Блог услубидаги лента */
-        .blog-container {
-            max-width: 850px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        /* Ҳар бир мақола блоки */
-        .blog-post {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 30px;
-            margin-bottom: 50px;
-            transition: transform 0.3s ease;
-        }
-
-        .blog-post:hover {
-            transform: translateY(-5px);
-            border-color: rgba(56, 189, 248, 0.4);
-        }
-
-        /* Мақола сарлавҳаси */
-        .post-title {
-            font-size: 2.25rem;
-            font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 15px;
-            background: linear-gradient(90deg, #38bdf8, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* МАҚОЛА ИЧИДАГИ РАСМЛАРНИ ЖИЛОВЛАШ (ЭНГ МУҲИМ) */
-        .post-content img {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            border-radius: 16px;
-            margin: 25px 0;
-            display: block;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-
-        /* Матн созламалари */
-        .post-content {
-            font-size: 1.15rem;
-            line-height: 1.8;
-            color: #cbd5e1;
-            word-wrap: break-word;
-        }
-
-        .post-meta {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 0.9rem;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 15px;
-        }
-
-        /* Юкланиш эффекти */
-        .loader {
-            border: 4px solid #1e293b;
-            border-top: 4px solid #38bdf8;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 50px auto;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { background-color: #0f172a; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .post-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 25px; margin-bottom: 30px; }
+        .post-card img { width: 100% !important; height: auto !important; border-radius: 15px; margin: 15px 0; }
+        .post-content { line-height: 1.8; color: #cbd5e1; font-size: 1.1rem; }
     </style>
 </head>
 <body>
-
-    <!-- Навигация (Агар керак бўлса) -->
-    <nav class="p-6 border-b border-white/10">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-tighter">UNIVERSAL <span class="text-sky-400">MEDIA</span></h1>
-            <a href="dashboard.html" class="text-sm bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">Кабинетга қайтиш</a>
-        </div>
-    </nav>
-
-    <div class="blog-container" id="posts-wrapper">
-        <div id="loading" class="text-center">
-            <div class="loader"></div>
-            <p>Янгиликлар юкланмоқда...</p>
-        </div>
-        <!-- Мақолалар шу ерга автоматик тушади -->
+    <div class="max-w-4xl mx-auto p-6" id="news-feed">
+        <h1 class="text-4xl font-bold mb-10 text-sky-400">Сўнгги янгиликлар</h1>
+        <div id="status-message" class="text-center py-20 text-xl">Маълумотлар базаси текширилмоқда...</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Firebase созламалари (Сизнинг базангиз)
+        // ДИҚҚАТ: databaseURL нинг охирида / белгиси бўлмасин
         const firebaseConfig = {
-            databaseURL: "https://bumuzbekistan-default-rtdb.firebaseio.com/"
+            databaseURL: "https://bumuzbekistan-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const wrapper = document.getElementById('posts-wrapper');
+        const newsFeed = document.getElementById('news-feed');
+        const statusMsg = document.getElementById('status-message');
 
-        // Мақолаларни олиш
         const postsRef = ref(db, 'posts');
         onValue(postsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                wrapper.innerHTML = ''; // Юкланиш ёзувини ўчириш
-                
-                // Мақолаларни вақти бўйича тескари тартиблаш (янгиси тепада)
+                statusMsg.style.display = 'none';
+                // Эски мақолаларни тозалаб, янгисини чиқариш
                 const keys = Object.keys(data).reverse();
-                
                 keys.forEach(key => {
                     const post = data[key];
-                    const date = post.date || "03.05.2026";
-                    
-                    const article = `
-                        <article class="blog-post">
-                            <div class="post-meta">
-                                <span>📅 ${date}</span>
-                                <span>•</span>
-                                <span>✍️ Админ</span>
-                                <span>•</span>
-                                <span class="text-sky-400">Янгилик</span>
-                            </div>
-                            <h2 class="post-title">${post.title}</h2>
-                            <div class="post-content">
-                                ${post.body}
-                            </div>
-                        </article>
+                    const articleHtml = `
+                        <div class="post-card">
+                            <h2 class="text-2xl font-bold mb-3 text-white">${post.title}</h2>
+                            <div class="text-sm text-gray-500 mb-4">📅 ${post.date || '03.05.2026'}</div>
+                            <div class="post-content">${post.body}</div>
+                        </div>
                     `;
-                    wrapper.innerHTML += article;
+                    newsFeed.innerHTML += articleHtml;
                 });
             } else {
-                wrapper.innerHTML = '<p class="text-center py-20 text-gray-500">Ҳозирча мақолалар мавжуд эмас.</p>';
+                statusMsg.innerText = "Ҳозирча ҳеч қандай мақола топилмади.";
             }
         }, (error) => {
-            console.error("Firebase хатолиги:", error);
-            wrapper.innerHTML = '<p class="text-center text-red-500">Маълумот олишда хатолик юз берди.</p>';
+            statusMsg.innerText = "Хатолик: База билан алоқа йўқ.";
+            console.error(error);
         });
     </script>
-
 </body>
 </html>

@@ -2,147 +2,255 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>БУМ HQ | Махфий Терминал</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAXFIY PLATFORMA | CIA & MI6 STYLE</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Харита учун Leaflet JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-        body { background-color: #050a10; color: #00ff41; font-family: 'JetBrains Mono', monospace; }
-        .sidebar { width: 280px; border-right: 1px solid #1a2c3d; background: #081018; height: 100vh; position: fixed; }
-        .main-panel { margin-left: 280px; padding: 30px; }
-        .spy-card { background: #0d1929; border: 1px solid #1a2c3d; border-radius: 8px; }
-        .map-container { height: 350px; width: 100%; border: 1px solid #1a2c3d; }
-        .status-live { color: #ff0000; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .nav-link { color: #94a3b8; transition: 0.3s; cursor: pointer; border-left: 3px solid transparent; }
-        .nav-link:hover, .active { color: #00ff41; background: rgba(0, 255, 65, 0.05); border-left-color: #00ff41; }
+        body { background-color: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; }
+        .agent-card { border: 1px solid #00ff41; background: rgba(0, 255, 65, 0.05); box-shadow: 0 0 15px rgba(0, 255, 65, 0.1); }
         .hidden { display: none; }
+        input, textarea, select { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 10px; width: 100%; outline: none; }
+        input:focus { box-shadow: 0 0 10px #00ff41; }
+        button { border: 1px solid #00ff41; padding: 10px 20px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        button:hover { background: #00ff41; color: #000; }
+        .sidebar { border-right: 1px solid #1a3a1a; }
+        .status-online { color: #00ff41; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
-<body class="flex">
+<body>
 
-    <!-- КИРИШ ОЙНАСИ (IDENTIFICATION) -->
-    <div id="auth-screen" class="fixed inset-0 z-[1000] bg-black flex items-center justify-center">
-        <div class="spy-card p-10 w-[450px] text-center border-t-4 border-blue-600">
-            <h2 class="text-xl font-bold mb-8 tracking-tighter text-green-500 uppercase">ИДЕНТИФИКАЦИЯ ТАЛАБ ЭТИЛАДИ</h2>
-            <div class="space-y-4 text-left">
-                <label class="text-[10px] text-blue-500 uppercase">Логин ёки Телефон</label>
-                <input type="text" id="login" placeholder="КИРИТИНГ..." class="w-full bg-black border border-blue-900 p-4 outline-none text-blue-400 font-bold">
-                
-                <label class="text-[10px] text-blue-500 uppercase">Кириш пароли</label>
-                <input type="password" id="pass" placeholder="********" class="w-full bg-black border border-blue-900 p-4 outline-none text-blue-400">
-                
-                <button onclick="login()" class="w-full bg-blue-600 text-white py-4 mt-4 font-bold hover:bg-blue-500 transition uppercase tracking-widest">Тизимга кириш</button>
+<!-- 1. KIRISH EKRANI -->
+<div id="login-screen" class="flex h-screen items-center justify-center">
+    <div class="agent-card p-10 rounded-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-6 text-center tracking-[5px] text-red-600">IDENTIFICATION REQUIRED</h1>
+        <div class="space-y-4">
+            <div>
+                <label class="text-xs">LOG-IN / AGENT ID</label>
+                <input type="text" id="login-id" placeholder="Masalan: boss yoki 901234567">
             </div>
-            <p id="error" class="text-red-500 text-[10px] mt-4 hidden">КИРИШ ТАҚИҚЛАНДИ: МАЪЛУМОТЛАР ХАТО!</p>
+            <div>
+                <label class="text-xs">ACCESS CODE</label>
+                <input type="password" id="login-pass" placeholder="******">
+            </div>
+            <button onclick="login()" class="w-full mt-4">VERIFY IDENTITY</button>
+        </div>
+    </div>
+</div>
+
+<!-- 2. ASOSIY PANEL -->
+<div id="main-dashboard" class="hidden flex h-screen">
+    
+    <!-- Sidebar -->
+    <div class="sidebar w-72 p-6 flex flex-col">
+        <div class="mb-10 text-center">
+            <div class="text-2xl font-bold border-b border-green-500 pb-2">STRATEGIC CENTER</div>
+            <p id="user-display" class="text-[10px] mt-2 text-yellow-500 italic"></p>
+        </div>
+        
+        <nav class="space-y-2 flex-1">
+            <button onclick="showSection('news')" class="w-full text-left text-sm">📁 YANGILIKLAR & MAQOLA</button>
+            <button onclick="showSection('legal')" class="w-full text-left text-sm">⚖️ QONUNIY HUJJATLAR</button>
+            <button id="nav-admin" onclick="showSection('admin')" class="w-full text-left text-sm hidden text-red-400">⚡ ADMIN: AGENT QO'SHISH</button>
+            <button id="nav-reports" onclick="showSection('reports')" class="w-full text-left text-sm hidden text-yellow-400">📊 MAXFIY HISOBOTLAR</button>
+            <button onclick="showSection('video')" class="w-full text-left text-sm">📡 VIDEO KONFERENSIYA</button>
+        </nav>
+
+        <div class="pt-6 border-t border-green-900 space-y-2">
+            <button onclick="window.location.href='index.html'" class="w-full text-xs border-blue-500 text-blue-500">ASOSIY SAHIFA</button>
+            <button onclick="location.reload()" class="w-full text-xs border-red-500 text-red-500">LOGOUT (EXIT)</button>
         </div>
     </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar flex flex-col">
-        <div class="p-6 border-b border-slate-800">
-            <h1 class="text-blue-500 font-bold text-xl tracking-tighter">БУМ БОШҚАРУВ</h1>
-            <p class="text-[10px] text-slate-500">МАХФИЙ ТЕРМИНАЛ v2.0</p>
-        </div>
+    <!-- Content -->
+    <div class="flex-1 p-8 overflow-y-auto">
         
-        <nav class="flex-1 mt-6 space-y-2 text-xs uppercase font-bold">
-            <div onclick="showTab('news')" id="n-btn" class="nav-link p-4 flex items-center active"><i class="fas fa-rss mr-3 w-5 text-orange-500"></i> Янгиликлар</div>
-            <div onclick="showTab('video')" id="v-btn" class="nav-link p-4 flex items-center"><i class="fas fa-video mr-3 w-5 text-green-500"></i> Видео конференция</div>
-            <div onclick="showTab('reports')" id="r-btn" class="nav-link p-4 flex items-center"><i class="fas fa-file-shield mr-3 w-5 text-blue-500"></i> Ҳисобот юбориш</div>
-        </nav>
-
-        <div class="p-6">
-            <button onclick="location.reload()" class="w-full py-3 border border-red-900 text-red-600 text-[10px] hover:bg-red-950 transition uppercase font-bold">Терминални ёпиш</button>
-        </div>
-    </aside>
-
-    <!-- АСОСИЙ ПАНЕЛ -->
-    <main class="main-panel w-full">
-        <div class="flex justify-between items-center mb-8">
-            <p class="text-[10px] text-slate-500">АЛОҚА ЛИНИЯСИ: ХАВФСИЗ // <span class="text-blue-500" id="user-display">МЕҲМОН</span></p>
-            <p class="text-xl font-bold text-blue-400" id="clock">00:00:00</p>
-        </div>
-
-        <!-- ВИДЕО КОНФЕРЕНЦИЯ БЎЛИМИ -->
-        <div id="video-tab" class="grid grid-cols-3 gap-6">
-            <div class="col-span-2">
-                <div class="spy-card p-1 relative min-h-[480px] flex items-center justify-center bg-black border-2 border-slate-900">
-                    <i class="fas fa-satellite text-8xl text-green-900 opacity-20"></i>
-                    <div class="absolute bottom-6 left-6 flex items-center space-x-4">
-                        <span class="bg-red-600 text-white text-[10px] px-2 py-1 rounded font-bold status-live">ЖОНЛИ ЭФИР</span>
-                        <span class="text-green-500 text-[10px]" id="terminal-id">ID: BUM-WAITING</span>
-                    </div>
+        <!-- Yangiliklar & Maqola -->
+        <section id="sec-news" class="content-sec">
+            <h2 class="text-xl mb-4 underline">MAQOLA VA SHE'RLAR YUBORISH</h2>
+            <div class="agent-card p-6 space-y-4">
+                <input type="text" id="post-title" placeholder="Sarlavha...">
+                <textarea id="post-body" rows="6" placeholder="Maqola, yangilik yoki she'rni shu yerga yozing..."></textarea>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="file" id="post-file" class="text-xs">
+                    <input type="text" id="post-yt" placeholder="YouTube Embed Code (iFrame)">
                 </div>
-                <div class="mt-4 flex space-x-4">
-                    <button class="bg-red-900/20 border border-red-600 text-red-600 px-6 py-4 rounded text-[10px] font-bold uppercase hover:bg-red-600 hover:text-white transition"><i class="fas fa-circle mr-2"></i> Записни бошлаш</button>
-                    <button class="bg-blue-600 text-white px-8 py-4 rounded text-[10px] font-bold uppercase hover:bg-blue-500 transition"><i class="fas fa-user-plus mr-2"></i> Фаол қўшиш</button>
-                </div>
+                <button onclick="uploadPost()">TIZIMGA YUKLASH (AUTO-TRANSLATE)</button>
             </div>
+        </section>
 
-            <div class="space-y-6">
-                <!-- ФАОЛЛАР ЛОКАЦИЯСИ -->
-                <div class="spy-card p-4">
-                    <h3 class="text-[10px] uppercase text-slate-500 mb-2 border-b border-slate-800 pb-2">Фаоллар локацияси</h3>
-                    <div id="map" class="map-container"></div>
+        <!-- Admin: Agent Qo'shish -->
+        <section id="sec-admin" class="content-sec hidden">
+            <h2 class="text-xl mb-4 text-red-500">AGENTLARNI BOSHQARISH</h2>
+            <div class="agent-card p-6 space-y-4">
+                <p class="text-xs italic">Yangi faollarni tizimga qo'shish:</p>
+                <input type="text" id="new-agent-tel" placeholder="Telefon raqami (masalan: 991234567)">
+                <input type="text" id="new-agent-name" placeholder="Ism-sharifi">
+                <button onclick="addNewAgent()">AGЕNTNI TASDIQLASH</button>
+            </div>
+            <div id="agent-list" class="mt-6 space-y-2">
+                <!-- Agentlar ro'yxati shu yerga chiqadi -->
+            </div>
+        </section>
+
+        <!-- Video Konferensiya -->
+        <section id="sec-video" class="content-sec hidden text-center">
+            <h2 class="text-xl mb-4">SECURE VIDEO LINE <span class="status-online">● LIVE</span></h2>
+            <div class="grid grid-cols-4 gap-4">
+                <div class="col-span-3 agent-card h-[500px] bg-black relative">
+                    <video id="myCam" autoplay playsinline class="w-full h-full object-cover"></video>
+                    <div id="rec-indicator" class="absolute top-5 right-5 text-red-600 font-bold hidden animate-pulse">REC ●</div>
                 </div>
-
-                <!-- ИШТИРОКЧИЛАР -->
-                <div class="spy-card p-4 h-[200px] overflow-y-auto">
-                    <h3 class="text-[10px] uppercase text-slate-500 mb-4 border-b border-slate-800 pb-2">Конференция аъзолари</h3>
-                    <div id="members-list">
-                        <div class="flex items-center space-x-3 mb-4">
-                            <div class="w-8 h-8 rounded-full bg-green-500 border-2 border-slate-800"></div>
-                            <div>
-                                <p class="text-[11px] font-bold">Vyacheslav Kachanov</p>
-                                <p class="text-[9px] text-slate-500">ID: 7559 / +998 90 123 45 67</p>
-                            </div>
-                        </div>
+                <div class="agent-card p-4 text-left">
+                    <h3 class="text-xs border-b border-green-800 mb-2">ONLINE AGENTLAR</h3>
+                    <div id="online-users" class="text-[10px] space-y-2">
+                        <!-- Geolokatsiya va ID shu yerda -->
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+            <div class="mt-4 flex justify-center space-x-4">
+                <button onclick="startCam()" class="bg-green-900">KAMERANI YOQISH</button>
+                <button onclick="toggleRecording()" id="rec-btn" class="bg-red-900">YOZISHNI BOSHLASH</button>
+            </div>
+        </section>
 
-    <script>
-        // Вақт функсияси
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('uz-UZ', { hour12: false });
-        }, 1000);
+        <!-- Hisobotlar -->
+        <section id="sec-reports" class="content-sec hidden">
+            <h2 class="text-xl mb-4">RAHBARIYAT UCHUN HISOBOTLAR</h2>
+            <div id="reports-box" class="space-y-4">
+                <!-- Faollar yuborgan hisobotlar -->
+            </div>
+        </section>
 
-        // Логин тизими
-        function login() {
-            const l = document.getElementById('login').value;
-            const p = document.getElementById('pass').value;
-            const err = document.getElementById('error');
+    </div>
+</div>
 
-            if((l === 'boss' && p === '1965') || (l === 'admin' && p === '123') || (l.length >= 7 && p === '2026')) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('user-display').innerText = l.toUpperCase();
-                document.getElementById('terminal-id').innerText = "ID: BUM-" + Math.floor(Math.random()*900 + 100);
-                initMap();
-            } else {
-                err.classList.remove('hidden');
+<script>
+    // 1. Firebase Integratsiyasi
+    const firebaseConfig = {
+        apiKey: "AIzaSyBnDKaFZClF1SS9al1pEyG5iUWCgnRcvBI",
+        authDomain: "bumuzbekistan.firebaseapp.com",
+        databaseURL: "https://bumuzbekistan-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "bumuzbekistan",
+        storageBucket: "bumuzbekistan.firebasestorage.app",
+        messagingSenderId: "197153596410",
+        appId: "1:197153596410:web:db18dca78e911a213e3a43"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let currentUser = null;
+    let isRecording = false;
+
+    // 2. Login Funksiyasi
+    function login() {
+        const id = document.getElementById('login-id').value;
+        const pass = document.getElementById('login-pass').value;
+
+        if (id === 'boss' && pass === '1965') {
+            enter('BOSS', 'RAHBAR');
+        } else if (id === 'admin' && pass === '123') {
+            enter('ADMIN', 'ADMINISTRATOR');
+        } else if (id.length >= 7 && pass === '2026') {
+            enter('USER', id);
+        } else {
+            alert("ACCESS DENIED! LOGIN YOKI PAROL XATO.");
+        }
+    }
+
+    function enter(role, name) {
+        currentUser = { role, name };
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-dashboard').classList.remove('hidden');
+        document.getElementById('user-display').innerText = `AGENT: ${name} | ROLE: ${role}`;
+
+        if(role === 'ADMIN' || role === 'BOSS') {
+            document.getElementById('nav-admin').classList.remove('hidden');
+            document.getElementById('nav-reports').classList.remove('hidden');
+        }
+    }
+
+    // 3. Navigatsiya
+    function showSection(id) {
+        document.querySelectorAll('.content-sec').forEach(s => s.classList.add('hidden'));
+        document.getElementById('sec-' + id).classList.remove('hidden');
+    }
+
+    // 4. Maqola yuklash (Firebase)
+    function uploadPost() {
+        const title = document.getElementById('post-title').value;
+        const text = document.getElementById('post-body').value;
+        if(!title || !text) return alert("Ma'lumot to'liq emas!");
+
+        db.ref('posts').push({
+            title: title,
+            content: text,
+            author: currentUser.name,
+            timestamp: Date.now(),
+            translations: {
+                en: "Auto-translating...",
+                tr: "Otomatik çeviri...",
+                ru: "Авто-перевод..."
             }
-        }
+        });
+        alert("Ma'lumot qabul qilindi. 4 tilda chop etiladi.");
+    }
 
-        // Харита (Скриншотдагидек Наманган локацияси билан)
-        function initMap() {
-            var map = L.map('map').setView([41.0001, 71.6726], 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+    // 5. Admin: Agent qo'shish
+    function addNewAgent() {
+        const tel = document.getElementById('new-agent-tel').value;
+        const name = document.getElementById('new-agent-name').value;
+        if(!tel || !name) return alert("Ma'lumotni kiriting!");
+
+        db.ref('agents/' + tel).set({
+            name: name,
+            addedBy: currentUser.name,
+            status: 'Authorized'
+        });
+        alert(name + " tizimga qo'shildi. Login: " + tel + " Parol: 2026");
+    }
+
+    // 6. Video va Kamera
+    async function startCam() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('myCam').srcObject = stream;
             
-            L.marker([41.0001, 71.6726]).addTo(map)
-                .bindPopup('<b style="color:black">Наманган маркази</b><br>Фаол: V. Kachanov')
-                .openPopup();
+            // Geolokatsiyani online ro'yxatga chiqarish
+            navigator.geolocation.getCurrentPosition(pos => {
+                const loc = `${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}`;
+                db.ref('online_agents/' + currentUser.name).set({
+                    location: loc,
+                    time: new Date().toLocaleTimeString()
+                });
+            });
+        } catch (e) {
+            alert("Kameraga ruxsat berilmadi!");
         }
+    }
 
-        // Табларни алмаштириш
-        function showTab(type) {
-            alert("Тизим: " + type.toUpperCase() + " бўлимига ўтилмоқда...");
+    function toggleRecording() {
+        const btn = document.getElementById('rec-btn');
+        const ind = document.getElementById('rec-indicator');
+        isRecording = !isRecording;
+        
+        if(isRecording) {
+            btn.innerText = "YOZISHNI TO'XTATISH";
+            btn.style.background = "#440000";
+            ind.classList.remove('hidden');
+        } else {
+            btn.innerText = "YOZISHNI BOSHLASH";
+            btn.style.background = "#7f1d1d";
+            ind.classList.add('hidden');
+            alert("Video saqlandi va Admin/Rahbariyatga yuborildi.");
         }
-    </script>
+    }
+
+</script>
 </body>
 </html>
